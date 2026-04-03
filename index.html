@@ -852,7 +852,7 @@ html,body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:
 <script>
 /* ── CONFIG ── */
 const CLIENT_ID = '353383460238-j9od4hjlt3b426nnsgrcj8oenu769nt8.apps.googleusercontent.com';
-const SCOPES = 'https://www.googleapis.com/auth/spreadsheets';
+const SCOPES = 'https://www.googleapis.com/auth/spreadsheets openid email profile';
 const SHEETS = {
   Categorias: '1JQv1soC2ZHKQOznddFjnR80-pV8IGMQ6FNGESow4ngM',
   Personal:   '1ZmFRf6JiSltZnhvSW62V8XfyZigXlu3F1lLpef2jNNg',
@@ -878,7 +878,7 @@ function init() {
 
   tokenClient = google.accounts.oauth2.initTokenClient({
     client_id: CLIENT_ID,
-    scope: SCOPES,
+    scope: 'https://www.googleapis.com/auth/spreadsheets openid email profile',
     callback: onTokenReceived
   });
 }
