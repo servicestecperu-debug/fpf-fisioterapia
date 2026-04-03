@@ -895,39 +895,36 @@ function onTokenReceived(resp) {
     return;
   }
   accessToken = resp.access_token;
+  document.getElementById('authStatus').textContent = 'Verificando acceso...';
 
   fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
     headers: {Authorization: 'Bearer ' + accessToken}
-  }).then(r => r.json()).then(async u => {
-    const initials = ((u.given_name||'F')[0] + (u.family_name||'T')[0]).toUpperCase();
+  })
+  .then(r => {
+    if (!r.ok) throw new Error('Token inválido: ' + r.status);
+    return r.json();
+  })
+  .then(async u => {
+    if (!u.email) throw new Error('No se pudo obtener el correo');
+
+    const initials = ((u.given_name||'U')[0] + (u.family_name||'')[0]).toUpperCase();
     document.getElementById('userAvatar').textContent = initials;
     document.getElementById('drawerAvatar').textContent = initials;
     document.getElementById('drawerName').textContent = u.name || 'Usuario';
-    document.getElementById('drawerEmail').textContent = u.email || '';
+    document.getElementById('drawerEmail').textContent = u.email;
 
-    // Verificar acceso en hoja Personal
-    document.getElementById('authStatus').textContent = 'Verificando acceso...';
+    // Buscar correo en hoja Personal
     const rows = await sheetGet(SHEETS.Personal, 'A2:I500');
-    console.log('Personal rows:', rows);
-    console.log('Email buscado:', u.email);
-    const found = rows.find(r => {
-      const correoHoja = (r[6]||'').toLowerCase().trim();
-      const correoUser = (u.email||'').toLowerCase().trim();
-      console.log('Comparando:', correoHoja, '===', correoUser);
-      return correoHoja === correoUser;
-    });
+    const emailUser = u.email.toLowerCase().trim();
+    const found = rows.find(r => (r[6]||'').toLowerCase().trim() === emailUser);
 
     if (!found) {
-      console.log('Usuario no encontrado en Personal');
       document.getElementById('authStatus').innerHTML =
-        '<span style="color:#E8291A;font-weight:600">⛔ Tu correo no está registrado en el sistema.<br>Contacta al administrador.</span>';
-      if (accessToken) google.accounts.oauth2.revoke(accessToken);
+        '<span style="color:#E8291A;font-weight:600">⛔ Tu correo no está registrado.<br>Contacta al administrador.</span>';
+      google.accounts.oauth2.revoke(accessToken);
       accessToken = null;
       return;
     }
-
-    console.log('Usuario encontrado:', found);
-    console.log('Acceso (r[8]):', found[8]);
 
     currentUser = {
       email: u.email,
@@ -938,6 +935,12 @@ function onTokenReceived(resp) {
     document.getElementById('authScreen').classList.add('hidden');
     applyRoles();
     loadData();
+  })
+  .catch(err => {
+    console.error('Auth error:', err);
+    document.getElementById('authStatus').innerHTML =
+      '<span style="color:#E8291A;font-weight:600">⛔ Error de autenticación. Intenta de nuevo.</span>';
+    accessToken = null;
   });
 }
 
