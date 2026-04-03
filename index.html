@@ -329,7 +329,10 @@ html,body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:
       <div class="drawer-user-name" id="drawerName">Usuario</div>
       <div class="drawer-user-email" id="drawerEmail">—</div>
     </div>
-    <button class="logout-btn" onclick="signOut()">Salir</button>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;margin-left:auto">
+      <span id="drawerRolBadge" style="background:var(--blue);color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px">Usuario</span>
+      <button class="logout-btn" onclick="signOut()">Salir</button>
+    </div>
   </div>
 </nav>
 
@@ -864,6 +867,7 @@ let tokenClient, accessToken = null;
 let jugadores = [], personal = [], atenciones = [];
 let selectedPlayer = {l: null, a: null};
 let nro = 1;
+let currentUser = null; // {email, acceso, nombre}
 
 /* ── INIT ── */
 function init() {
@@ -892,27 +896,73 @@ function onTokenReceived(resp) {
   }
   accessToken = resp.access_token;
 
-  // Get user info
   fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
     headers: {Authorization: 'Bearer ' + accessToken}
-  }).then(r => r.json()).then(u => {
+  }).then(r => r.json()).then(async u => {
     const initials = ((u.given_name||'F')[0] + (u.family_name||'T')[0]).toUpperCase();
     document.getElementById('userAvatar').textContent = initials;
     document.getElementById('drawerAvatar').textContent = initials;
     document.getElementById('drawerName').textContent = u.name || 'Usuario';
     document.getElementById('drawerEmail').textContent = u.email || '';
-  });
 
-  document.getElementById('authScreen').classList.add('hidden');
-  loadData();
+    // Verificar acceso en hoja Personal
+    document.getElementById('authStatus').textContent = 'Verificando acceso...';
+    const rows = await sheetGet(SHEETS.Personal, 'A2:I200');
+    const found = rows.find(r => (r[6]||'').toLowerCase().trim() === (u.email||'').toLowerCase().trim());
+
+    if (!found) {
+      document.getElementById('authStatus').innerHTML =
+        '<span style="color:#E8291A;font-weight:600">⛔ Tu correo no está registrado en el sistema.<br>Contacta al administrador.</span>';
+      if (accessToken) google.accounts.oauth2.revoke(accessToken);
+      accessToken = null;
+      return;
+    }
+
+    currentUser = {
+      email: u.email,
+      nombre: u.name,
+      acceso: (found[8]||'user').toLowerCase().trim() // columna I = acceso
+    };
+
+    document.getElementById('authScreen').classList.add('hidden');
+    applyRoles();
+    loadData();
+  });
 }
 
 function signOut() {
   if (accessToken) google.accounts.oauth2.revoke(accessToken);
   accessToken = null;
+  currentUser = null;
   jugadores = []; personal = [];
   document.getElementById('authScreen').classList.remove('hidden');
+  document.getElementById('authStatus').textContent = '';
   closeDrawer();
+}
+
+/* ── ROLES ── */
+function applyRoles() {
+  const isAdmin = currentUser && currentUser.acceso === 'admin';
+
+  // Drawer — secciones maestros solo para admin
+  const maestrosSection = document.querySelector('.drawer-section');
+  const maestrosNav = maestrosSection ? maestrosSection.nextElementSibling : null;
+  if (maestrosSection) maestrosSection.style.display = isAdmin ? '' : 'none';
+  if (maestrosNav) maestrosNav.style.display = isAdmin ? '' : 'none';
+
+  // Bottom nav — ocultar jugadores para usuario
+  const bnJugadores = document.getElementById('bn-jugadores');
+  if (bnJugadores) bnJugadores.style.display = isAdmin ? '' : 'none';
+
+  // Badge de rol en drawer
+  const rolBadge = document.getElementById('drawerRolBadge');
+  if (rolBadge) {
+    rolBadge.textContent = isAdmin ? 'Admin' : 'Usuario';
+    rolBadge.style.background = isAdmin ? 'var(--red)' : 'var(--blue)';
+  }
+
+  // Si es usuario, ir directo a lesiones
+  if (!isAdmin) goView('lesiones');
 }
 
 /* ── LOAD DATA ── */
@@ -952,8 +1002,11 @@ async function loadJugadores() {
 }
 
 async function loadPersonal() {
-  const rows = await sheetGet(SHEETS.Personal, 'A2:H200');
-  personal = rows.map(r => ({id:r[0]||'', nombres:r[1]||'', apellidos:r[2]||'', rol:r[5]||''}));
+  const rows = await sheetGet(SHEETS.Personal, 'A2:I200');
+  personal = rows.map(r => ({
+    id:r[0]||'', nombres:r[1]||'', apellidos:r[2]||'',
+    rol:r[5]||'', correo:r[6]||'', acceso:r[8]||'user'
+  }));
   const opts = personal.map(p => `<option value="${p.id}">${p.nombres} ${p.apellidos} · ${p.rol}</option>`).join('');
   document.getElementById('l-personal').innerHTML = '<option value="">— Seleccionar —</option>' + opts;
   document.getElementById('a-personal').innerHTML = '<option value="">— Seleccionar —</option>' + opts;
