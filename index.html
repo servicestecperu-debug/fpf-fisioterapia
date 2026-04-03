@@ -907,10 +907,18 @@ function onTokenReceived(resp) {
 
     // Verificar acceso en hoja Personal
     document.getElementById('authStatus').textContent = 'Verificando acceso...';
-    const rows = await sheetGet(SHEETS.Personal, 'A2:I200');
-    const found = rows.find(r => (r[6]||'').toLowerCase().trim() === (u.email||'').toLowerCase().trim());
+    const rows = await sheetGet(SHEETS.Personal, 'A2:I500');
+    console.log('Personal rows:', rows);
+    console.log('Email buscado:', u.email);
+    const found = rows.find(r => {
+      const correoHoja = (r[6]||'').toLowerCase().trim();
+      const correoUser = (u.email||'').toLowerCase().trim();
+      console.log('Comparando:', correoHoja, '===', correoUser);
+      return correoHoja === correoUser;
+    });
 
     if (!found) {
+      console.log('Usuario no encontrado en Personal');
       document.getElementById('authStatus').innerHTML =
         '<span style="color:#E8291A;font-weight:600">⛔ Tu correo no está registrado en el sistema.<br>Contacta al administrador.</span>';
       if (accessToken) google.accounts.oauth2.revoke(accessToken);
@@ -918,10 +926,13 @@ function onTokenReceived(resp) {
       return;
     }
 
+    console.log('Usuario encontrado:', found);
+    console.log('Acceso (r[8]):', found[8]);
+
     currentUser = {
       email: u.email,
       nombre: u.name,
-      acceso: (found[8]||'user').toLowerCase().trim() // columna I = acceso
+      acceso: (found[8]||'user').toLowerCase().trim()
     };
 
     document.getElementById('authScreen').classList.add('hidden');
