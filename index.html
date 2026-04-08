@@ -852,7 +852,7 @@ html,body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:
 <script>
 /* ── CONFIG ── */
 const CLIENT_ID = '353383460238-j9od4hjlt3b426nnsgrcj8oenu769nt8.apps.googleusercontent.com';
-const SCOPES = 'https://www.googleapis.com/auth/spreadsheets openid email profile';
+const SCOPES = 'openid email profile';
 const SHEETS = {
   Categorias: '1JQv1soC2ZHKQOznddFjnR80-pV8IGMQ6FNGESow4ngM',
   Personal:   '1ZmFRf6JiSltZnhvSW62V8XfyZigXlu3F1lLpef2jNNg',
@@ -861,6 +861,91 @@ const SHEETS = {
   Atenciones: '1Wpa22-ySUTZpnBKDNcbeuKJPAP-ET4zKtE9TofZE8TU'
 };
 const TREATMENTS = ['C.H.C','Contraste','Crioterapia','Electroterapia','Game Ready','Laserterapia','Magnetoterapia','Masoterapia','Normatec','Tecarterapia','Terapia Combinada','Terapia Manual','Ultrasonido','Vendaje'];
+
+/* ── SERVICE ACCOUNT ── */
+const SA_EMAIL = 'fpf-fisioterapia-bot@fpf-fisioterapia.iam.gserviceaccount.com';
+const SA_KEY = `-----BEGIN PRIVATE KEY-----
+MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCzSuR5gKifKdf8
+maET/zbOS/BgH6svLxOZOkGhlvMkoxBeX1GmPYzMZosKyBppbloF6Ko40x26Ai0V
+jnh8My0ZohN4wGlkrIBJ1NfWluTTaM4NI5AJ0p9bMJLRAcaMeI1Z2GcwSqZPJAGR
+32pNO/wqLj3miEkitNW3e81imV2L2BwgLVKbb5SSrua9ipQtm33BrBut5Vu7Wi8q
+SSYOjlahlyP4JPTOehkHhYF1f/7Gpg8iroF3hLf5ihrNO398353AIC8Enzw8KSkz
+vLUyKa9p6P5KOhWeqQTcoRiJtsVu97iVaZoIZArE9w7aGJXZ2/6k1WviLo9a2ebX
+gELudqUzAgMBAAECggEAHv6f77dDrzw7F/JxC7VvgotTMzLWU5JWV4NgLDCduOQt
+pLrisRPr3rwNZmBAXKCUlHfr0WYBuhG9PIBEKOhp8Af6SMIulhZSGTFf3Lt6NGfm
+UxQmRuRv4wJLJzGg4tDGUtVbxVfqVz0YvmB6jn6DscELt2oxBnxvg8g1sclkiBOa
+aft4EIyL9G9vuN2GRnkBkz4MUVCM/uBcy+ekFZQ54T1LNAiUhbexYQr1LrZXLS78
+uE8yyOdXc6ZhasBT47X7yF2H7JleS1+0fMkXCDExK01NkEGwCQdcpwoMAGuc+Wan
+Drn0VBTgbX6K7Ns5q3Zssw0t07zTy89VVRfKcRea5QKBgQDfVAmxlyG3t4fCaeMe
+jDbnTQLJyUkFNXvA70o6Rrz/lf/x3LOCKDQsLcWq9Z5OpLnRwulDOxztsh45kh82
+xg6DFe6JXpzhJbcuct8dGcZl0UCMUVxiz/tBGLD60NX76EoPLj+FBrQUdlaWlYYX
+9yg5Ji2v/A3FGF8mCBEE71QcJQKBgQDNhadrGkawPaxi4Gu/KFFebHHsu/9hR7vA
+2KMozpnM30x712lvtI9noZowJRRcnhsmpbH9QltJXqR4PHXw+TTUyl0GTKWuZKkv
+MtlITYc9m/3TpxvDQ3fHcH+H/cgXoOAbo6F0cIETUrqJNKwxp3QmK/flRhykmb3q
+i+pPUapQdwKBgQDb8OjHFH9pbn9uUVgTOqXLsAVh8zFNxvmE7mUc9ZOm5vQ1H1VO
+hweyxrVYhCMPcp1qXtnZk3sPAQ9RRX4mNHIQWWYdtacs+TbpsMnY4AyLM8StLGef
+DRN2bbnGmitTttZREwwNl6d8S3tFPCberVPYzKfMHKD3DeSPEPyp7oXYXQKBgHjj
+df+8u/msvTqH0TjmqT4GQdjDGEuLWzfq9cXqCHOGoUFzCrTHG1cUqlJJbTmxUj0g
+V5qlrnZwsgN7ZNBydY343lD3Qrlawl1d5ort92/Y0qvtbpojlE/+rzU5pLmpSklX
+rX+FMZdBITHVhrfKTLqrQCxfWjfDqv9Mf21alvivAoGAVg7jdY22J3PMiSXs5/rk
+4eRDBd+qjDQvTQZelb9XJML4ohbp8XqADayV6aWRYkdnyBjnPHEQxbHdM3rdvWCQ
+PmZ/E0GGGSqOI2NINAjFi7KjsCLk3UP1YtXgkFGo42I5CGgHj4TODNvOcfhxMNjK
+eiL4ffi6HfiiNoho83lzw5E=
+-----END PRIVATE KEY-----`;
+
+let saToken = null;
+let saTokenExpiry = 0;
+
+async function getSAToken() {
+  const now = Math.floor(Date.now() / 1000);
+  if (saToken && now < saTokenExpiry - 60) return saToken;
+
+  const header = btoa(JSON.stringify({alg:'RS256',typ:'JWT'})).replace(/=/g,'').replace(/\+/g,'-').replace(/\//g,'_');
+  const payload = btoa(JSON.stringify({
+    iss: SA_EMAIL,
+    scope: 'https://www.googleapis.com/auth/spreadsheets',
+    aud: 'https://oauth2.googleapis.com/token',
+    exp: now + 3600,
+    iat: now
+  })).replace(/=/g,'').replace(/\+/g,'-').replace(/\//g,'_');
+
+  const unsigned = header + '.' + payload;
+
+  // Import private key and sign
+  const pemContents = SA_KEY.replace(/-----BEGIN PRIVATE KEY-----/, '')
+    .replace(/-----END PRIVATE KEY-----/, '')
+    .replace(/\s+/g, '');
+  const binaryKey = Uint8Array.from(atob(pemContents), c => c.charCodeAt(0));
+
+  const cryptoKey = await crypto.subtle.importKey(
+    'pkcs8', binaryKey.buffer,
+    {name:'RSASSA-PKCS1-v1_5', hash:'SHA-256'},
+    false, ['sign']
+  );
+
+  const signature = await crypto.subtle.sign(
+    'RSASSA-PKCS1-v1_5', cryptoKey,
+    new TextEncoder().encode(unsigned)
+  );
+
+  const sigB64 = btoa(String.fromCharCode(...new Uint8Array(signature)))
+    .replace(/=/g,'').replace(/\+/g,'-').replace(/\//g,'_');
+
+  const jwt = unsigned + '.' + sigB64;
+
+  const resp = await fetch('https://oauth2.googleapis.com/token', {
+    method: 'POST',
+    headers: {'Content-Type':'application/x-www-form-urlencoded'},
+    body: `grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer&assertion=${jwt}`
+  });
+  const data = await resp.json();
+  if (data.access_token) {
+    saToken = data.access_token;
+    saTokenExpiry = now + (data.expires_in || 3600);
+    return saToken;
+  }
+  throw new Error('No se pudo obtener token SA: ' + JSON.stringify(data));
+}
 
 /* ── STATE ── */
 let tokenClient, accessToken = null;
@@ -878,7 +963,7 @@ function init() {
 
   tokenClient = google.accounts.oauth2.initTokenClient({
     client_id: CLIENT_ID,
-    scope: 'https://www.googleapis.com/auth/spreadsheets openid email profile',
+    scope: 'openid email profile',
     callback: onTokenReceived
   });
 }
@@ -913,7 +998,7 @@ function onTokenReceived(resp) {
     document.getElementById('drawerName').textContent = u.name || 'Usuario';
     document.getElementById('drawerEmail').textContent = u.email;
 
-    // Buscar correo en hoja Personal
+    // Verificar acceso usando SA token (no el token del usuario)
     const rows = await sheetGet(SHEETS.Personal, 'A2:I500');
     const emailUser = u.email.toLowerCase().trim();
     const found = rows.find(r => (r[6]||'').toLowerCase().trim() === emailUser);
@@ -991,20 +1076,25 @@ async function loadData() {
 }
 
 async function sheetGet(sheetId, range) {
+  const token = await getSAToken();
   const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${range}`;
-  const r = await fetch(url, {headers:{Authorization:'Bearer '+accessToken}});
+  const r = await fetch(url, {headers:{Authorization:'Bearer '+token}});
   const d = await r.json();
+  if (d.error) throw new Error(d.error.message);
   return d.values || [];
 }
 
 async function sheetAppend(sheetId, range, values) {
+  const token = await getSAToken();
   const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${range}:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`;
   const r = await fetch(url, {
     method:'POST',
-    headers:{Authorization:'Bearer '+accessToken,'Content-Type':'application/json'},
+    headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},
     body: JSON.stringify({values})
   });
-  return r.json();
+  const d = await r.json();
+  if (d.error) throw new Error(d.error.message);
+  return d;
 }
 
 async function loadJugadores() {
