@@ -600,9 +600,8 @@ html,body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:
           </div>
           <div class="field" style="margin-top:11px">
             <label>Personal que registra <span class="req">*</span></label>
-            <select id="l-personal">
-              <option value="">— Seleccionar —</option>
-            </select>
+            <input type="hidden" id="l-personal-id">
+            <div id="l-personal-display" style="background:var(--blue-bg);border:1.5px solid var(--blue);border-radius:var(--radius-sm);padding:12px 14px;font-size:14px;font-weight:600;color:var(--blue);min-height:48px;display:flex;align-items:center">Cargando...</div>
           </div>
         </div>
         <div class="form-section">
@@ -740,9 +739,8 @@ html,body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:
           <div class="form-grid">
             <div class="field">
               <label>Personal que atiende <span class="req">*</span></label>
-              <select id="a-personal">
-                <option value="">— Seleccionar —</option>
-              </select>
+              <input type="hidden" id="a-personal-id">
+              <div id="a-personal-display" style="background:var(--blue-bg);border:1.5px solid var(--blue);border-radius:var(--radius-sm);padding:12px 14px;font-size:14px;font-weight:600;color:var(--blue);min-height:48px;display:flex;align-items:center">Cargando...</div>
             </div>
             <div class="field">
               <label>Fecha de atención <span class="req">*</span></label>
@@ -1108,26 +1106,22 @@ async function loadJugadores() {
 }
 
 async function loadPersonal() {
+  if (!currentUser || !currentUser.email) return;
+  // Solo buscar el registro del usuario logueado, no traer toda la lista
   const rows = await sheetGet(SHEETS.Personal, 'A2:I200');
-  personal = rows.map(r => ({
-    id:r[0]||'', nombres:r[1]||'', apellidos:r[2]||'',
-    rol:r[5]||'', correo:r[6]||'', acceso:r[8]||'user'
-  }));
-  autoSelectPersonal();
-}
-
-function autoSelectPersonal() {
-  if (!currentUser || !currentUser.email || !personal.length) return;
-  const me = personal.find(p => (p.correo||'').toLowerCase().trim() === currentUser.email.toLowerCase().trim());
+  const me = rows.find(r => (r[6]||'').toLowerCase().trim() === currentUser.email.toLowerCase().trim());
   if (me) {
-    // Mostrar solo el usuario logueado en ambos selects
-    const opt = `<option value="${me.id}" selected>${me.nombres} ${me.apellidos} · ${me.rol}</option>`;
-    const lp = document.getElementById('l-personal');
-    const ap = document.getElementById('a-personal');
-    lp.innerHTML = opt;
-    lp.disabled = true;
-    ap.innerHTML = opt;
-    ap.disabled = true;
+    const p = {id:me[0]||'', nombres:me[1]||'', apellidos:me[2]||'', rol:me[5]||''};
+    personal = [p];
+    // Mostrar en campos de texto readonly — no select
+    ['l-personal-display','a-personal-display'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = `${p.nombres} ${p.apellidos} · ${p.rol}`;
+    });
+    ['l-personal-id','a-personal-id'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = p.id;
+    });
   }
 }
 
@@ -1230,14 +1224,15 @@ async function guardarCategoria() {
 async function guardarLesion() {
   if (!selectedPlayer.l) { showToast('Selecciona un jugador','amber'); return; }
   const v = id => document.getElementById(id).value.trim();
-  if (!v('l-personal')||!v('l-parte')||!v('l-lado')||!v('l-tipo')||!v('l-producto')||!v('l-cuando')||!v('l-lugar')||!v('l-fechalesion')) {
+  const personalId = document.getElementById('l-personal-id').value;
+  if (!personalId||!v('l-parte')||!v('l-lado')||!v('l-tipo')||!v('l-producto')||!v('l-cuando')||!v('l-lugar')||!v('l-fechalesion')) {
     showToast('Complete los campos obligatorios','amber'); return;
   }
   showToast('Guardando...','amber');
   const id = 'L' + Date.now();
   try {
     await sheetAppend(SHEETS.Lesiones, 'A:N', [[
-      id, selectedPlayer.l.id, v('l-personal'), v('l-parte'), v('l-musculo'),
+      id, selectedPlayer.l.id, personalId, v('l-parte'), v('l-musculo'),
       v('l-lado'), v('l-tipo'), v('l-producto'), v('l-cuando'), v('l-lugar'),
       v('l-phabil'), v('l-fechalesion'), v('l-fecharetorno'),
       jugadores.find(j=>j.id===selectedPlayer.l.id)?.fnac||''
@@ -1250,7 +1245,8 @@ async function guardarLesion() {
 async function guardarAtencion() {
   if (!selectedPlayer.a) { showToast('Selecciona un jugador','amber'); return; }
   const v = id => document.getElementById(id).value.trim();
-  if (!v('a-personal')||!v('a-fecha')||!v('a-tipolesion')) {
+  const personalId = document.getElementById('a-personal-id').value;
+  if (!personalId||!v('a-fecha')||!v('a-tipolesion')) {
     showToast('Complete los campos obligatorios','amber'); return;
   }
   showToast('Guardando...','amber');
@@ -1261,7 +1257,7 @@ async function guardarAtencion() {
   });
   try {
     await sheetAppend(SHEETS.Atenciones, 'A:U', [[
-      id, selectedPlayer.a.id, v('a-personal'), v('a-fecha'), v('a-tipolesion'),
+      id, selectedPlayer.a.id, personalId, v('a-fecha'), v('a-tipolesion'),
       v('a-zona'), v('a-lateralidad'), ...treats
     ]]);
     // Local historial
@@ -1451,14 +1447,12 @@ function resetForm(type) {
   if(type==='lesion'){
     clearPlayer('l');
     clr(['l-parte','l-musculo','l-lado','l-tipo','l-producto','l-phabil','l-cuando','l-lugar','l-fechalesion','l-fecharetorno']);
-    autoSelectPersonal();
   }
   if(type==='atencion'){
     clearPlayer('a');
     clr(['a-tipolesion','a-zona','a-lateralidad']);
     document.getElementById('a-fecha').value=new Date().toISOString().split('T')[0];
     document.querySelectorAll('#treatmentsGrid input').forEach(c=>{c.checked=false;c.closest('.treat-item').classList.remove('selected');});
-    autoSelectPersonal();
   }
 }
 
