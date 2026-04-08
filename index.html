@@ -1,0 +1,1472 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Fisioterapia · FPF</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>
+:root {
+  --bg:#F4F6F9; --surface:#FFF; --border:#E5E8EF; --border-light:#EFF1F5;
+  --text:#0F1623; --text-2:#4A5568; --text-3:#8A95A3;
+  --blue:#1A6FE8; --blue-bg:#EBF2FD;
+  --red:#E8291A; --red-bg:#FDEDEB;
+  --green:#16A34A; --green-bg:#EBFAF1;
+  --amber:#D97706; --amber-bg:#FEF3E2;
+  --purple:#7C3AED; --purple-bg:#F0EBFD;
+  --teal:#0D9488; --teal-bg:#EBFAFA;
+  --shadow-sm:0 1px 4px rgba(0,0,0,0.08);
+  --shadow:0 4px 16px rgba(0,0,0,0.10);
+  --shadow-lg:0 8px 32px rgba(0,0,0,0.14);
+  --radius:14px; --radius-sm:10px;
+  --nav-h:64px; --top-h:56px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100dvh;overscroll-behavior:none}
+
+/* TOPBAR */
+.topbar{position:fixed;top:0;left:0;right:0;height:var(--top-h);background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 16px;z-index:200;box-shadow:var(--shadow-sm)}
+.topbar-left{display:flex;align-items:center;gap:10px}
+.menu-btn{width:40px;height:40px;border:none;background:none;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;cursor:pointer}
+.menu-btn span{display:block;width:20px;height:2px;background:var(--text);border-radius:2px;transition:all .25s}
+.menu-btn.open span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+.menu-btn.open span:nth-child(2){opacity:0}
+.menu-btn.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+.brand-icon{width:34px;height:34px;background:var(--red);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#fff;flex-shrink:0}
+.topbar-title{font-size:14px;font-weight:700;color:var(--text);line-height:1.2}
+.topbar-sub{font-size:10px;color:var(--text-3)}
+.topbar-right{display:flex;align-items:center;gap:8px}
+.date-tag{font-size:11px;color:var(--text-3);font-family:'DM Mono',monospace;background:var(--bg);padding:4px 9px;border-radius:20px;border:1px solid var(--border)}
+.avatar{width:34px;height:34px;background:var(--purple-bg);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--purple);border:2px solid var(--border);cursor:pointer;flex-shrink:0}
+
+/* AUTH OVERLAY */
+.auth-screen{position:fixed;inset:0;background:var(--surface);z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;padding:32px}
+.auth-screen.hidden{display:none}
+.auth-logo{width:64px;height:64px;background:var(--red);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;color:#fff}
+.auth-title{font-size:22px;font-weight:800;color:var(--text);text-align:center;letter-spacing:-0.5px}
+.auth-sub{font-size:14px;color:var(--text-3);text-align:center;line-height:1.6}
+.auth-btn{display:flex;align-items:center;gap:10px;padding:14px 24px;background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:14px;font-weight:600;color:var(--text);cursor:pointer;transition:all .15s;font-family:'Plus Jakarta Sans',sans-serif;box-shadow:var(--shadow-sm)}
+.auth-btn:active{background:var(--bg)}
+.auth-btn img{width:20px;height:20px}
+
+/* OVERLAY + DRAWER */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:300;opacity:0;pointer-events:none;transition:opacity .25s}
+.overlay.show{opacity:1;pointer-events:all}
+.drawer{position:fixed;top:0;left:0;bottom:0;width:280px;background:var(--surface);z-index:400;transform:translateX(-100%);transition:transform .28s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;box-shadow:var(--shadow-lg)}
+.drawer.open{transform:translateX(0)}
+.drawer-header{padding:20px 20px 16px;border-bottom:1px solid var(--border-light);display:flex;align-items:center;gap:12px}
+.drawer-brand-icon{width:42px;height:42px;background:var(--red);border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;color:#fff}
+.drawer-brand-name{font-size:15px;font-weight:700;color:var(--text)}
+.drawer-brand-sub{font-size:11px;color:var(--text-3);margin-top:1px}
+.drawer-close{margin-left:auto;width:32px;height:32px;border:none;background:var(--bg);border-radius:8px;font-size:16px;cursor:pointer;color:var(--text-2);display:flex;align-items:center;justify-content:center}
+.drawer-section{font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:1px;padding:14px 20px 4px}
+.drawer-nav{padding:4px 12px;display:flex;flex-direction:column;gap:2px}
+.drawer-item{display:flex;align-items:center;gap:12px;padding:12px;border-radius:var(--radius-sm);font-size:14px;font-weight:500;color:var(--text-2);cursor:pointer;border:none;background:none;width:100%;text-align:left;transition:all .15s;font-family:'Plus Jakarta Sans',sans-serif}
+.drawer-item:active{background:var(--bg)}
+.drawer-item.active{background:var(--blue-bg);color:var(--blue);font-weight:700}
+.drawer-icon{font-size:18px;width:24px;text-align:center;flex-shrink:0}
+.drawer-badge{margin-left:auto;background:var(--red);color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;font-family:'DM Mono',monospace}
+.drawer-item.active .drawer-badge{background:var(--blue)}
+.drawer-user{padding:16px 20px;border-top:1px solid var(--border-light);margin-top:auto;display:flex;align-items:center;gap:10px}
+.drawer-user-name{font-size:13px;font-weight:600;color:var(--text)}
+.drawer-user-email{font-size:11px;color:var(--text-3)}
+.logout-btn{margin-left:auto;font-size:12px;color:var(--red);border:none;background:none;cursor:pointer;font-weight:600;font-family:'Plus Jakarta Sans',sans-serif}
+
+/* BOTTOM NAV */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;height:var(--nav-h);background:var(--surface);border-top:1px solid var(--border);display:flex;z-index:200;box-shadow:0 -2px 12px rgba(0,0,0,0.06);padding-bottom:env(safe-area-inset-bottom)}
+.bottom-nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:none;background:none;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;padding:8px 4px;position:relative}
+.bottom-nav-icon{font-size:20px;line-height:1}
+.bottom-nav-label{font-size:10px;font-weight:600;color:var(--text-3)}
+.bottom-nav-item.active .bottom-nav-label{color:var(--blue)}
+.bottom-nav-item.active::after{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:32px;height:3px;background:var(--blue);border-radius:0 0 4px 4px}
+.bnav-badge{position:absolute;top:6px;right:calc(50% - 18px);background:var(--red);color:#fff;font-size:9px;font-weight:700;padding:1px 5px;border-radius:20px;display:none}
+
+/* MAIN */
+.main{padding-top:var(--top-h);padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom));min-height:100dvh}
+.view{display:none;padding:16px;animation:fadeIn .2s ease}
+.view.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+
+/* PAGE HEADER */
+.page-header{margin-bottom:14px}
+.page-title{font-size:22px;font-weight:800;color:var(--text);letter-spacing:-0.5px}
+.page-meta{font-size:12px;color:var(--text-3);margin-top:3px}
+
+/* HINT */
+.hint-bar{background:#FFF8EC;border:1px solid #F6D8A0;border-radius:var(--radius-sm);padding:12px 14px;font-size:12px;color:#8A6200;margin-bottom:14px;display:flex;align-items:flex-start;gap:8px;line-height:1.6}
+
+/* FORM CARD */
+.form-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow-sm);margin-bottom:16px}
+.form-top{padding:14px 16px;border-bottom:1px solid var(--border-light);display:flex;align-items:center;gap:12px}
+.form-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.form-icon.red{background:var(--red-bg)}
+.form-icon.blue{background:var(--blue-bg)}
+.form-icon.green{background:var(--green-bg)}
+.form-icon.purple{background:var(--purple-bg)}
+.form-icon.teal{background:var(--teal-bg)}
+.form-top-title{font-size:15px;font-weight:700;color:var(--text)}
+.form-top-sub{font-size:12px;color:var(--text-3);margin-top:2px}
+.form-body{padding:16px}
+.form-section{margin-bottom:18px}
+.form-section:last-child{margin-bottom:0}
+.section-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-3);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.section-label::after{content:'';flex:1;height:1px;background:var(--border-light)}
+.form-grid{display:flex;flex-direction:column;gap:11px}
+.field{display:flex;flex-direction:column;gap:5px}
+.field label{font-size:11px;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:.5px}
+.req{color:var(--red)}
+.opt{color:var(--text-3);font-weight:400;text-transform:none;letter-spacing:0;font-size:10px;margin-left:3px}
+.field input,.field select,.field textarea{background:var(--bg);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px;color:var(--text);font-size:15px;font-family:'Plus Jakarta Sans',sans-serif;transition:border-color .15s,box-shadow .15s;outline:none;width:100%;appearance:none;-webkit-appearance:none;min-height:48px}
+.field select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238A95A3' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:36px;cursor:pointer}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--blue);background:var(--surface);box-shadow:0 0 0 3px rgba(26,111,232,.1)}
+.field input::placeholder{color:var(--text-3)}
+.field textarea{resize:vertical;min-height:80px;line-height:1.6}
+
+/* PLAYER SEARCH */
+.player-search-wrap{position:relative}
+.player-dropdown{position:absolute;top:100%;left:0;right:0;background:var(--surface);border:1.5px solid var(--blue);border-top:none;border-radius:0 0 var(--radius-sm) var(--radius-sm);z-index:50;max-height:200px;overflow-y:auto;box-shadow:var(--shadow)}
+.player-option{padding:11px 14px;font-size:14px;cursor:pointer;color:var(--text);border-bottom:1px solid var(--border-light);display:flex;flex-direction:column;gap:2px}
+.player-option:last-child{border-bottom:none}
+.player-option:active{background:var(--blue-bg)}
+.player-option-name{font-weight:600}
+.player-option-meta{font-size:11px;color:var(--text-3)}
+.player-selected{background:var(--blue-bg);border-color:var(--blue);border-radius:var(--radius-sm);padding:10px 14px;display:flex;align-items:center;justify-content:space-between;font-size:14px;font-weight:600;color:var(--blue);min-height:48px}
+.player-clear{background:none;border:none;color:var(--text-3);cursor:pointer;font-size:18px;padding:0 4px}
+
+/* TREATMENTS */
+.treatments-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.treat-item{background:var(--bg);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:12px;display:flex;align-items:center;gap:8px;cursor:pointer;transition:all .15s;user-select:none;min-height:46px}
+.treat-item.selected{border-color:var(--blue);background:var(--blue-bg)}
+.treat-item input[type="checkbox"]{width:17px;height:17px;accent-color:var(--blue);cursor:pointer;flex-shrink:0}
+.treat-label{font-size:13px;color:var(--text-2);font-weight:500}
+.treat-item.selected .treat-label{color:var(--blue);font-weight:600}
+
+/* FORM FOOTER */
+.form-footer{border-top:1px solid var(--border-light);padding:14px 16px;display:flex;align-items:center;justify-content:space-between;background:var(--bg)}
+.form-footer-note{font-size:11px;color:var(--text-3)}
+.form-actions{display:flex;gap:8px}
+
+/* BUTTONS */
+.btn{padding:11px 18px;border-radius:var(--radius-sm);font-size:14px;font-weight:700;cursor:pointer;border:none;transition:all .15s;display:inline-flex;align-items:center;gap:6px;font-family:'Plus Jakarta Sans',sans-serif;min-height:46px;white-space:nowrap}
+.btn-primary{background:var(--blue);color:#fff}
+.btn-primary:active{background:#1558C0}
+.btn-ghost{background:var(--surface);color:var(--text-2);border:1px solid var(--border)}
+.btn-ghost:active{background:var(--bg)}
+.btn-red{background:var(--red);color:#fff}
+.btn-red:active{background:#C41E0D}
+.btn-green{background:var(--green);color:#fff}
+.btn-green:active{background:#0F7A38}
+
+/* UPLOAD ZONE */
+.upload-zone{border:2px dashed var(--border);border-radius:var(--radius);padding:32px 20px;text-align:center;cursor:pointer;transition:all .2s;background:var(--surface)}
+.upload-zone:active,.upload-zone.drag{border-color:var(--blue);background:var(--blue-bg)}
+.upload-icon{font-size:36px;margin-bottom:10px;opacity:.5}
+.upload-text{font-size:14px;font-weight:600;color:var(--text-2);margin-bottom:4px}
+.upload-sub{font-size:12px;color:var(--text-3)}
+.upload-preview{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;margin-top:12px}
+.upload-preview-header{padding:10px 14px;background:var(--bg);display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border-light)}
+.upload-preview-title{font-size:13px;font-weight:700;color:var(--text)}
+.upload-preview-count{font-size:11px;color:var(--text-3);font-family:'DM Mono',monospace}
+.preview-scroll{overflow-x:auto;max-height:200px;overflow-y:auto}
+.preview-table{width:100%;border-collapse:collapse;font-size:12px}
+.preview-table th{padding:8px 10px;background:var(--bg);color:var(--text-3);font-weight:700;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border);white-space:nowrap;text-align:left}
+.preview-table td{padding:8px 10px;color:var(--text-2);border-bottom:1px solid var(--border-light);white-space:nowrap}
+.preview-table tr:last-child td{border-bottom:none}
+
+/* RECORD CARDS */
+.table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow-sm)}
+.table-header{padding:12px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border-light)}
+.search-wrap{position:relative;flex:1}
+.search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-3);font-size:14px;pointer-events:none}
+.search-box{background:var(--bg);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px 10px 32px;color:var(--text);font-size:14px;font-family:'Plus Jakarta Sans',sans-serif;outline:none;width:100%;min-height:44px;transition:border-color .15s}
+.search-box:focus{border-color:var(--blue)}
+.rec-count{font-size:12px;color:var(--text-3);font-family:'DM Mono',monospace;white-space:nowrap}
+.record-list{display:flex;flex-direction:column}
+.record-card{padding:13px 16px;border-bottom:1px solid var(--border-light);display:flex;flex-direction:column;gap:5px}
+.record-card:last-child{border-bottom:none}
+.record-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.record-name{font-size:14px;font-weight:700;color:var(--text)}
+.record-date{font-size:11px;color:var(--text-3);font-family:'DM Mono',monospace;flex-shrink:0}
+.record-mid{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.record-detail{font-size:12px;color:var(--text-3);line-height:1.5;margin-top:1px}
+.pill{display:inline-flex;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;flex-shrink:0}
+.pill-mayor{background:var(--red-bg);color:var(--red)}
+.pill-sub20{background:var(--amber-bg);color:var(--amber)}
+.pill-sub18{background:var(--teal-bg);color:var(--teal)}
+.pill-sub17{background:var(--green-bg);color:var(--green)}
+.pill-sub16{background:var(--purple-bg);color:var(--purple)}
+.pill-sub15{background:var(--blue-bg);color:var(--blue)}
+
+/* EMPTY */
+.empty-state{padding:48px 20px;text-align:center}
+.empty-icon{font-size:36px;margin-bottom:10px;opacity:.35}
+.empty-text{font-size:14px;font-weight:600;color:var(--text-2);margin-bottom:4px}
+.empty-sub{font-size:12px;color:var(--text-3)}
+.field select:disabled{background:var(--blue-bg);border-color:var(--blue);color:var(--blue);opacity:1;cursor:default;background-image:none}
+
+/* STATUS BADGE */
+.status-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:20px;font-size:12px;font-weight:600}
+.status-badge.ok{background:var(--green-bg);color:var(--green)}
+.status-badge.err{background:var(--red-bg);color:var(--red)}
+.status-badge.loading{background:var(--amber-bg);color:var(--amber)}
+
+/* TOAST */
+.toast{position:fixed;bottom:calc(var(--nav-h) + 12px);left:12px;right:12px;background:var(--surface);border:1px solid var(--border);padding:14px 16px;border-radius:var(--radius);display:flex;align-items:center;gap:10px;font-size:14px;font-weight:600;color:var(--text);box-shadow:var(--shadow-lg);opacity:0;transform:translateY(10px);transition:all .25s;z-index:9999;pointer-events:none}
+.toast.show{opacity:1;transform:translateY(0)}
+.toast-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.toast-dot.green{background:var(--green)}
+.toast-dot.amber{background:var(--amber)}
+.toast-dot.red{background:var(--red)}
+
+/* SPINNER */
+.spinner{width:18px;height:18px;border:2px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ROW 2 */
+.row-2{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+
+@media(min-width:600px){
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .col-full{grid-column:1/-1}
+  .treatments-grid{grid-template-columns:repeat(3,1fr)}
+  .view{padding:24px 28px}
+  .form-body{padding:20px}
+}
+@media(min-width:960px){
+  .bottom-nav{display:none}
+  .main{padding-bottom:0}
+  .toast{bottom:24px;left:auto;right:24px;width:320px}
+  .drawer{transform:translateX(0)!important;box-shadow:none;border-right:1px solid var(--border)}
+  .overlay{display:none!important}
+  .main{margin-left:280px}
+  .menu-btn{display:none}
+  .form-grid{grid-template-columns:repeat(3,1fr)}
+  .treatments-grid{grid-template-columns:repeat(4,1fr)}
+}
+</style>
+</head>
+<body>
+
+<!-- AUTH SCREEN -->
+<div class="auth-screen" id="authScreen">
+  <div class="auth-logo">FPF</div>
+  <div class="auth-title">Área Médica · Fisioterapia</div>
+  <div class="auth-sub">Federación Peruana de Fútbol<br>Inicia sesión con tu cuenta Google para continuar</div>
+  <button class="auth-btn" onclick="signIn()">
+    <img src="https://www.google.com/favicon.ico" alt="Google">
+    Iniciar sesión con Google
+  </button>
+  <div id="authStatus" style="font-size:12px;color:var(--text-3)"></div>
+</div>
+
+<!-- TOPBAR -->
+<header class="topbar">
+  <div class="topbar-left">
+    <button class="menu-btn" id="menuBtn" onclick="toggleDrawer()">
+      <span></span><span></span><span></span>
+    </button>
+    <div class="brand-icon">FPF</div>
+    <div>
+      <div class="topbar-title">Área Médica - Fisioterapia</div>
+      <div class="topbar-sub">Federación Peruana de Fútbol</div>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <span class="date-tag" id="currentDate"></span>
+    <div class="avatar" id="userAvatar" title="Usuario">FT</div>
+  </div>
+</header>
+
+<!-- OVERLAY -->
+<div class="overlay" id="overlay" onclick="toggleDrawer()"></div>
+
+<!-- DRAWER -->
+<nav class="drawer" id="drawer">
+  <div class="drawer-header">
+    <div class="drawer-brand-icon">FPF</div>
+    <div>
+      <div class="drawer-brand-name">Fisioterapia</div>
+      <div class="drawer-brand-sub">Área Médica · FPF</div>
+    </div>
+    <button class="drawer-close" onclick="closeDrawer()">✕</button>
+  </div>
+
+  <div class="drawer-section">Maestros</div>
+  <div class="drawer-nav">
+    <button class="drawer-item" id="d-jugadores" onclick="goView('jugadores');closeDrawer()">
+      <span class="drawer-icon">👤</span> Jugadores
+    </button>
+    <button class="drawer-item" id="d-carga" onclick="goView('carga');closeDrawer()">
+      <span class="drawer-icon">📂</span> Carga masiva
+    </button>
+    <button class="drawer-item" id="d-personal" onclick="goView('personal');closeDrawer()">
+      <span class="drawer-icon">🩺</span> Personal médico
+    </button>
+    <button class="drawer-item" id="d-categorias" onclick="goView('categorias');closeDrawer()">
+      <span class="drawer-icon">🏷️</span> Categorías
+    </button>
+  </div>
+
+  <div class="drawer-section">Clínico</div>
+  <div class="drawer-nav">
+    <button class="drawer-item active" id="d-lesiones" onclick="goView('lesiones');closeDrawer()">
+      <span class="drawer-icon">🩹</span> Reg. Lesiones
+    </button>
+    <button class="drawer-item" id="d-atenciones" onclick="goView('atenciones');closeDrawer()">
+      <span class="drawer-icon">🏥</span> Reg. Atenciones
+    </button>
+    <button class="drawer-item" id="d-historial" onclick="goView('historial');closeDrawer()">
+      <span class="drawer-icon">📋</span> Historial
+      <span class="drawer-badge" id="drawerHistBadge" style="display:none">0</span>
+    </button>
+  </div>
+
+  <div class="drawer-user">
+    <div class="avatar" style="width:36px;height:36px;font-size:12px" id="drawerAvatar">FT</div>
+    <div style="flex:1;min-width:0">
+      <div class="drawer-user-name" id="drawerName" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Cargando...</div>
+      <div class="drawer-user-email" id="drawerEmail" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">—</div>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0">
+      <span id="drawerRolBadge" style="background:var(--blue);color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px">Usuario</span>
+      <button class="logout-btn" onclick="signOut()">Salir</button>
+    </div>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- ══ JUGADORES ══ -->
+  <div id="view-jugadores" class="view">
+    <div class="page-header">
+      <div class="page-title">Jugadores</div>
+      <div class="page-meta">Registro individual de jugadores</div>
+    </div>
+    <div class="form-card">
+      <div class="form-top">
+        <div class="form-icon blue">👤</div>
+        <div>
+          <div class="form-top-title">Nuevo Jugador</div>
+          <div class="form-top-sub">Complete los datos del jugador</div>
+        </div>
+      </div>
+      <div class="form-body">
+        <div class="form-section">
+          <div class="section-label">Datos personales</div>
+          <div class="form-grid">
+            <div class="field col-full">
+              <label>Nombres <span class="req">*</span></label>
+              <input type="text" id="j-nombres" placeholder="Nombres completos">
+            </div>
+            <div class="field col-full">
+              <label>Apellidos <span class="req">*</span></label>
+              <input type="text" id="j-apellidos" placeholder="Apellidos completos">
+            </div>
+            <div class="field">
+              <label>DNI <span class="req">*</span></label>
+              <input type="text" id="j-dni" placeholder="00000000" maxlength="8">
+            </div>
+            <div class="field">
+              <label>Fecha de Nacimiento <span class="req">*</span></label>
+              <input type="date" id="j-fnac">
+            </div>
+          </div>
+        </div>
+        <div class="form-section">
+          <div class="section-label">Datos deportivos</div>
+          <div class="form-grid">
+            <div class="field">
+              <label>Categoría <span class="req">*</span></label>
+              <select id="j-categoria">
+                <option value="">— Seleccionar —</option>
+                <option>Sub-15</option><option>Sub-16</option><option>Sub-17</option>
+                <option>Sub-18</option><option>Sub-20</option><option>Mayores</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Posición de juego</label>
+              <select id="j-posicion">
+                <option value="">— Seleccionar —</option>
+                <option>Portero</option><option>Defensa</option><option>Mediocampista</option><option>Delantero</option>
+              </select>
+            </div>
+            <div class="field col-full">
+              <label>Club</label>
+              <input type="text" id="j-club" placeholder="Nombre del club">
+            </div>
+          </div>
+        </div>
+        <div class="form-section">
+          <div class="section-label">Contacto</div>
+          <div class="form-grid">
+            <div class="field col-full">
+              <label>Dirección</label>
+              <input type="text" id="j-direccion" placeholder="Dirección">
+            </div>
+            <div class="field col-full">
+              <label>Distrito</label>
+              <input type="text" id="j-distrito" placeholder="Distrito">
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="form-footer">
+        <div class="form-footer-note">(<span style="color:var(--red)">*</span>) Obligatorio</div>
+        <div class="form-actions">
+          <button class="btn btn-ghost" onclick="resetForm('jugador')">↺</button>
+          <button class="btn btn-blue btn-primary" onclick="guardarJugador()">✓ Guardar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ CARGA MASIVA ══ -->
+  <div id="view-carga" class="view">
+    <div class="page-header">
+      <div class="page-title">Carga masiva</div>
+      <div class="page-meta">Importar jugadores desde Excel o CSV</div>
+    </div>
+    <div class="form-card">
+      <div class="form-top">
+        <div class="form-icon green">📂</div>
+        <div>
+          <div class="form-top-title">Importar jugadores</div>
+          <div class="form-top-sub">Sube un archivo CSV o Excel con los datos</div>
+        </div>
+      </div>
+      <div class="form-body">
+        <div class="hint-bar">
+          📌 El archivo debe tener estas columnas en orden: <strong>nombres, apellidos, dni, fecha_nacimiento, categoria, posicion_juego, club, direccion, distrito</strong>
+        </div>
+        <button class="btn btn-ghost" style="margin-bottom:14px;font-size:13px" onclick="descargarPlantilla()">⬇ Descargar plantilla CSV</button>
+        <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()" ondragover="event.preventDefault();this.classList.add('drag')" ondragleave="this.classList.remove('drag')" ondrop="handleDrop(event)">
+          <div class="upload-icon">📄</div>
+          <div class="upload-text">Toca para seleccionar archivo</div>
+          <div class="upload-sub">CSV o Excel (.xlsx) · máx 5MB</div>
+        </div>
+        <input type="file" id="fileInput" accept=".csv,.xlsx,.xls" style="display:none" onchange="handleFile(this.files[0])">
+        <div id="uploadPreview" style="display:none"></div>
+      </div>
+      <div class="form-footer">
+        <div class="form-footer-note" id="uploadInfo">Ningún archivo seleccionado</div>
+        <div class="form-actions">
+          <button class="btn btn-ghost" onclick="cancelarCarga()">↺ Cancelar</button>
+          <button class="btn btn-green" id="importBtn" onclick="importarJugadores()" style="display:none">⬆ Importar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ PERSONAL ══ -->
+  <div id="view-personal" class="view">
+    <div class="page-header">
+      <div class="page-title">Personal médico</div>
+      <div class="page-meta">Fisioterapeutas, médicos y otros roles</div>
+    </div>
+    <div class="form-card">
+      <div class="form-top">
+        <div class="form-icon purple">🩺</div>
+        <div>
+          <div class="form-top-title">Nuevo Personal</div>
+          <div class="form-top-sub">Complete los datos del profesional</div>
+        </div>
+      </div>
+      <div class="form-body">
+        <div class="form-grid">
+          <div class="field col-full">
+            <label>Nombres <span class="req">*</span></label>
+            <input type="text" id="p-nombres" placeholder="Nombres completos">
+          </div>
+          <div class="field col-full">
+            <label>Apellidos <span class="req">*</span></label>
+            <input type="text" id="p-apellidos" placeholder="Apellidos completos">
+          </div>
+          <div class="field">
+            <label>DNI <span class="req">*</span></label>
+            <input type="text" id="p-dni" placeholder="00000000" maxlength="8">
+          </div>
+          <div class="field">
+            <label>Rol <span class="req">*</span></label>
+            <select id="p-rol">
+              <option value="">— Seleccionar —</option>
+              <option>Fisioterapeuta</option><option>Médico</option>
+              <option>Preparador Físico</option><option>Nutricionista</option>
+            </select>
+          </div>
+          <div class="field col-full">
+            <label>Especialidad</label>
+            <input type="text" id="p-especialidad" placeholder="Especialidad profesional">
+          </div>
+          <div class="field">
+            <label>Correo</label>
+            <input type="email" id="p-correo" placeholder="correo@ejemplo.com">
+          </div>
+          <div class="field">
+            <label>Teléfono</label>
+            <input type="tel" id="p-telefono" placeholder="999 999 999">
+          </div>
+        </div>
+      </div>
+      <div class="form-footer">
+        <div class="form-footer-note">(<span style="color:var(--red)">*</span>) Obligatorio</div>
+        <div class="form-actions">
+          <button class="btn btn-ghost" onclick="resetForm('personal')">↺</button>
+          <button class="btn btn-primary" onclick="guardarPersonal()">✓ Guardar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ CATEGORÍAS ══ -->
+  <div id="view-categorias" class="view">
+    <div class="page-header">
+      <div class="page-title">Categorías</div>
+      <div class="page-meta">Sub-15 · Sub-16 · Sub-17 · Sub-18 · Sub-20 · Mayores</div>
+    </div>
+    <div class="form-card">
+      <div class="form-top">
+        <div class="form-icon teal">🏷️</div>
+        <div>
+          <div class="form-top-title">Nueva Categoría</div>
+          <div class="form-top-sub">Complete los datos de la categoría</div>
+        </div>
+      </div>
+      <div class="form-body">
+        <div class="form-grid">
+          <div class="field">
+            <label>Nombre <span class="req">*</span></label>
+            <select id="c-nombre">
+              <option value="">— Seleccionar —</option>
+              <option>Sub-15</option><option>Sub-16</option><option>Sub-17</option>
+              <option>Sub-18</option><option>Sub-20</option><option>Mayores</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Año <span class="req">*</span></label>
+            <input type="number" id="c-año" placeholder="2025" min="2000" max="2099">
+          </div>
+          <div class="field col-full">
+            <label>Responsable</label>
+            <input type="text" id="c-responsable" placeholder="Nombre del responsable">
+          </div>
+          <div class="field col-full">
+            <label>Periodo</label>
+            <input type="text" id="c-periodo" placeholder="Ej: Enero - Diciembre 2025">
+          </div>
+        </div>
+      </div>
+      <div class="form-footer">
+        <div class="form-footer-note">(<span style="color:var(--red)">*</span>) Obligatorio</div>
+        <div class="form-actions">
+          <button class="btn btn-ghost" onclick="resetForm('categoria')">↺</button>
+          <button class="btn btn-primary" onclick="guardarCategoria()">✓ Guardar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ LESIONES ══ -->
+  <div id="view-lesiones" class="view active">
+    <div class="page-header">
+      <div class="page-title">Reg. de Lesiones</div>
+      <div class="page-meta">Antecedentes e historia clínica</div>
+    </div>
+    <div class="hint-bar">📌 Registra lesiones históricas y ocurridas en Videna o microciclo.</div>
+    <div class="form-card">
+      <div class="form-top">
+        <div class="form-icon red">🩹</div>
+        <div>
+          <div class="form-top-title">Nueva Lesión</div>
+          <div class="form-top-sub">Complete los campos obligatorios</div>
+        </div>
+      </div>
+      <div class="form-body">
+        <div class="form-section">
+          <div class="section-label">Jugador</div>
+          <div class="field">
+            <label>Buscar jugador <span class="req">*</span></label>
+            <div class="player-search-wrap">
+              <div id="l-player-selected" class="player-selected" style="display:none">
+                <span id="l-player-name">—</span>
+                <button class="player-clear" onclick="clearPlayer('l')">✕</button>
+              </div>
+              <input type="text" id="l-player-search" placeholder="Escribe nombre o DNI..." oninput="searchPlayer(this.value,'l')" autocomplete="off" style="display:block">
+              <div class="player-dropdown" id="l-player-dropdown" style="display:none"></div>
+            </div>
+          </div>
+          <div class="field" style="margin-top:11px">
+            <label>Personal que registra <span class="req">*</span></label>
+            <input type="hidden" id="l-personal-id">
+            <div id="l-personal-display" style="background:var(--blue-bg);border:1.5px solid var(--blue);border-radius:var(--radius-sm);padding:12px 14px;font-size:14px;font-weight:600;color:var(--blue);min-height:48px;display:flex;align-items:center">Cargando...</div>
+          </div>
+        </div>
+        <div class="form-section">
+          <div class="section-label">Detalle de la lesión</div>
+          <div class="form-grid">
+            <div class="field">
+              <label>Parte del cuerpo <span class="req">*</span></label>
+              <select id="l-parte">
+                <option value="">— Seleccionar —</option>
+                <option>ABDOMEN</option><option>ANTEBRAZO</option><option>BRAZO</option>
+                <option>CABEZA/CARA</option><option>CADERA/INGLE</option><option>CODO</option>
+                <option>COLUMNA LUMBAR/SACRO/PELVIS</option><option>CUELLO/COLUMNA CERVICAL</option>
+                <option>ESTERNÓN/COSTILLAS</option><option>FASCIA PLANTAR</option>
+                <option>HOMBRO/CLAVÍCULA</option><option>MANO/DEDO/PULGAR</option>
+                <option>MUÑECA</option><option>MUSLO</option><option>PIE/DEDO</option>
+                <option>PIERNA/TENDÓN DE AQUILES</option><option>RODILLA</option><option>TOBILLO</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Músculo afectado</label>
+              <select id="l-musculo">
+                <option value="">— Seleccionar —</option>
+                <option>ADUCTORES</option><option>CUADRICEPS</option><option>CUADRICEPS, ISQUIOSURALES</option>
+                <option>DELTOIDES</option><option>GEMELOS</option><option>GLUTEOS</option>
+                <option>INTERCOSTALES</option><option>ISQUIOSURALES</option><option>PECTORAL</option>
+                <option>PSOAS-ILIACO</option><option>SOLEO</option><option>TENDÓN DE AQUILES</option>
+                <option>TIBIALES</option><option>TRICEPS</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Lado <span class="req">*</span></label>
+              <select id="l-lado">
+                <option value="">— Seleccionar —</option>
+                <option>DERECHA</option><option>IZQUIERDA</option><option>BILATERAL</option><option>NO APLICA</option>
+              </select>
+            </div>
+            <div class="field col-full">
+              <label>Tipo de lesión <span class="req">*</span></label>
+              <select id="l-tipo">
+                <option value="">— Seleccionar —</option>
+                <option>CONTRACTURA MUSCULAR</option><option>CONTRACTURA MUSCULAR/DISTENSIÓN/DESGARRO/CALAMBRE</option>
+                <option>CONTUSION</option><option>DESGARRO</option><option>DISLOCACIÓN</option>
+                <option>DISTENSIÓN</option><option>ESGUINCE/LESIÓN LIGAMENTARIA</option>
+                <option>ESGUINCE/LESION TENDINOSA</option><option>FRACTURA</option>
+                <option>HEMATOMA/CONTUSIÓN/MORETÓN</option><option>LACERACIÓN</option>
+                <option>LESIÓN MENISCO</option><option>LESIÓN NERVIOSA</option>
+                <option>LESIÓN TENDINOSA/RUPTURA/TENDINOSIS/BURSITIS</option>
+                <option>LUXACION</option><option>OTRA LESIÓN</option>
+                <option>RUPTURA LIGAMENTO CRUZADO ANTERIOR</option><option>SUBLUXACIÓN</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Producto <span class="req">*</span></label>
+              <select id="l-producto">
+                <option value="">— Seleccionar —</option>
+                <option>Traumatica</option><option>No Traumatica</option><option>Sobreuso</option><option>Metabólico</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>P. Hábil</label>
+              <select id="l-phabil">
+                <option value="">— Seleccionar —</option>
+                <option>Derecha</option><option>Izquierda</option><option>Ambidiestro</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="form-section">
+          <div class="section-label">Contexto</div>
+          <div class="form-grid">
+            <div class="field">
+              <label>Cuándo <span class="req">*</span></label>
+              <select id="l-cuando">
+                <option value="">— Seleccionar —</option>
+                <option>Partido Oficial</option><option>Partido Amistoso</option>
+                <option>Entrenamiento</option><option>Fuerza</option><option>Técnico</option><option>Afuera</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Lugar <span class="req">*</span></label>
+              <select id="l-lugar">
+                <option value="">— Seleccionar —</option>
+                <option>Club</option><option>F.P.F.</option><option>Otro</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Fecha de lesión <span class="req">*</span></label>
+              <input type="date" id="l-fechalesion">
+            </div>
+            <div class="field">
+              <label>Fecha de retorno <span class="opt">(estimada)</span></label>
+              <input type="date" id="l-fecharetorno">
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="form-footer">
+        <div class="form-footer-note">(<span style="color:var(--red)">*</span>) Obligatorio</div>
+        <div class="form-actions">
+          <button class="btn btn-ghost" onclick="resetForm('lesion')">↺</button>
+          <button class="btn btn-red" onclick="guardarLesion()">✓ Guardar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ ATENCIONES ══ -->
+  <div id="view-atenciones" class="view">
+    <div class="page-header">
+      <div class="page-title">Reg. de Atenciones</div>
+      <div class="page-meta">Tratamientos y agentes físicos por sesión</div>
+    </div>
+    <div class="form-card">
+      <div class="form-top">
+        <div class="form-icon blue">🏥</div>
+        <div>
+          <div class="form-top-title">Nueva Atención</div>
+          <div class="form-top-sub">Complete los datos del tratamiento</div>
+        </div>
+      </div>
+      <div class="form-body">
+        <div class="form-section">
+          <div class="section-label">Jugador y sesión</div>
+          <div class="field" style="margin-bottom:11px">
+            <label>Buscar jugador <span class="req">*</span></label>
+            <div class="player-search-wrap">
+              <div id="a-player-selected" class="player-selected" style="display:none">
+                <span id="a-player-name">—</span>
+                <button class="player-clear" onclick="clearPlayer('a')">✕</button>
+              </div>
+              <input type="text" id="a-player-search" placeholder="Escribe nombre o DNI..." oninput="searchPlayer(this.value,'a')" autocomplete="off">
+              <div class="player-dropdown" id="a-player-dropdown" style="display:none"></div>
+            </div>
+          </div>
+          <div class="form-grid">
+            <div class="field">
+              <label>Personal que atiende <span class="req">*</span></label>
+              <input type="hidden" id="a-personal-id">
+              <div id="a-personal-display" style="background:var(--blue-bg);border:1.5px solid var(--blue);border-radius:var(--radius-sm);padding:12px 14px;font-size:14px;font-weight:600;color:var(--blue);min-height:48px;display:flex;align-items:center">Cargando...</div>
+            </div>
+            <div class="field">
+              <label>Fecha de atención <span class="req">*</span></label>
+              <input type="date" id="a-fecha">
+            </div>
+            <div class="field col-full">
+              <label>Tipo de lesión <span class="req">*</span></label>
+              <select id="a-tipolesion">
+                <option value="">— Seleccionar —</option>
+                <option>Protocol. Regeneración</option><option>Contractura</option>
+                <option>Desgarro</option><option>Pubalgia</option><option>Talalgia</option>
+                <option>Esguince Tobillo</option><option>Tendinitis</option><option>Contusion</option>
+                <option>CONTRACTURA MUSCULAR</option><option>ESGUINCE/LESIÓN LIGAMENTARIA</option>
+                <option>DESGARRO</option><option>FRACTURA</option><option>OTRA LESIÓN</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Zona afectada</label>
+              <select id="a-zona">
+                <option value="">— Seleccionar —</option>
+                <option>MUSLO</option><option>TOBILLO</option><option>RODILLA</option>
+                <option>PIE/DEDO</option><option>PIERNA/TENDÓN DE AQUILES</option>
+                <option>CADERA/INGLE</option><option>HOMBRO/CLAVÍCULA</option>
+                <option>COLUMNA LUMBAR/SACRO/PELVIS</option><option>ABDOMEN</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Lateralidad</label>
+              <select id="a-lateralidad">
+                <option value="">— Seleccionar —</option>
+                <option>DERECHA</option><option>IZQUIERDA</option><option>BILATERAL</option><option>NO APLICA</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="form-section">
+          <div class="section-label">Agentes físicos aplicados</div>
+          <div class="treatments-grid" id="treatmentsGrid"></div>
+        </div>
+      </div>
+      <div class="form-footer">
+        <div class="form-footer-note">(<span style="color:var(--red)">*</span>) Obligatorio</div>
+        <div class="form-actions">
+          <button class="btn btn-ghost" onclick="resetForm('atencion')">↺</button>
+          <button class="btn btn-primary" onclick="guardarAtencion()">✓ Guardar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ HISTORIAL ══ -->
+  <div id="view-historial" class="view">
+    <div class="page-header">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <div class="page-title">Historial</div>
+          <div class="page-meta">Atenciones de esta sesión</div>
+        </div>
+        <button class="btn btn-ghost" style="font-size:13px;padding:10px 14px" onclick="exportarCSV()">⬇ CSV</button>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <div class="table-header">
+        <div class="search-wrap">
+          <span class="search-icon">🔍</span>
+          <input class="search-box" type="text" id="searchInput" placeholder="Buscar jugador o lesión..." oninput="filtrarLista()">
+        </div>
+        <span class="rec-count" id="tableCount">0</span>
+      </div>
+      <div class="record-list" id="recordList"></div>
+      <div class="empty-state" id="emptyState">
+        <div class="empty-icon">📋</div>
+        <div class="empty-text">Sin atenciones aún</div>
+        <div class="empty-sub">Las atenciones guardadas aparecerán aquí</div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <button class="bottom-nav-item" id="bn-lesiones" onclick="goView('lesiones')">
+    <span class="bottom-nav-icon">🩹</span>
+    <span class="bottom-nav-label">Lesiones</span>
+  </button>
+  <button class="bottom-nav-item" id="bn-atenciones" onclick="goView('atenciones')">
+    <span class="bottom-nav-icon">🏥</span>
+    <span class="bottom-nav-label">Atenciones</span>
+  </button>
+  <button class="bottom-nav-item" id="bn-jugadores" onclick="goView('jugadores')">
+    <span class="bottom-nav-icon">👤</span>
+    <span class="bottom-nav-label">Jugadores</span>
+  </button>
+  <button class="bottom-nav-item" id="bn-historial" onclick="goView('historial')">
+    <span class="bottom-nav-icon">📋</span>
+    <span class="bottom-nav-label">Historial</span>
+    <span class="bnav-badge" id="bnavBadge">0</span>
+  </button>
+</nav>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <div class="toast-dot green" id="toastDot"></div>
+  <span id="toastMsg">Registro guardado</span>
+</div>
+
+<script>
+/* ── CONFIG ── */
+const CLIENT_ID = '353383460238-j9od4hjlt3b426nnsgrcj8oenu769nt8.apps.googleusercontent.com';
+const SCOPES = 'openid email profile';
+const SHEETS = {
+  Accesos:    '1jApH-s7EEwTu4NFEoMW2SXd_Gc-e_p0pUCk1SOvnfPM',
+  Categorias: '1JQv1soC2ZHKQOznddFjnR80-pV8IGMQ6FNGESow4ngM',
+  Personal:   '1ZmFRf6JiSltZnhvSW62V8XfyZigXlu3F1lLpef2jNNg',
+  Jugadores:  '1a3jwEMOGzjG54yOEjojQTrRs8WDcz6iayuaHxoOqIlk',
+  Lesiones:   '1_bK3mvzHTUy_x0kP0M5vRrxB4DswT-YZkJAcl2qjdh8',
+  Atenciones: '1Wpa22-ySUTZpnBKDNcbeuKJPAP-ET4zKtE9TofZE8TU'
+};
+const TREATMENTS = ['C.H.C','Contraste','Crioterapia','Electroterapia','Game Ready','Laserterapia','Magnetoterapia','Masoterapia','Normatec','Tecarterapia','Terapia Combinada','Terapia Manual','Ultrasonido','Vendaje'];
+
+/* ── SERVICE ACCOUNT ── */
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz0ytTSWpNiWD8BQZyzK6_NPrnYNZcJhdqHNRtdgjxzc3OqJPaKklcrRt3hcS6ASqly/exec';
+const SA_KEY = `-----BEGIN PRIVATE KEY-----
+MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCzSuR5gKifKdf8
+maET/zbOS/BgH6svLxOZOkGhlvMkoxBeX1GmPYzMZosKyBppbloF6Ko40x26Ai0V
+jnh8My0ZohN4wGlkrIBJ1NfWluTTaM4NI5AJ0p9bMJLRAcaMeI1Z2GcwSqZPJAGR
+32pNO/wqLj3miEkitNW3e81imV2L2BwgLVKbb5SSrua9ipQtm33BrBut5Vu7Wi8q
+SSYOjlahlyP4JPTOehkHhYF1f/7Gpg8iroF3hLf5ihrNO398353AIC8Enzw8KSkz
+vLUyKa9p6P5KOhWeqQTcoRiJtsVu97iVaZoIZArE9w7aGJXZ2/6k1WviLo9a2ebX
+gELudqUzAgMBAAECggEAHv6f77dDrzw7F/JxC7VvgotTMzLWU5JWV4NgLDCduOQt
+pLrisRPr3rwNZmBAXKCUlHfr0WYBuhG9PIBEKOhp8Af6SMIulhZSGTFf3Lt6NGfm
+UxQmRuRv4wJLJzGg4tDGUtVbxVfqVz0YvmB6jn6DscELt2oxBnxvg8g1sclkiBOa
+aft4EIyL9G9vuN2GRnkBkz4MUVCM/uBcy+ekFZQ54T1LNAiUhbexYQr1LrZXLS78
+uE8yyOdXc6ZhasBT47X7yF2H7JleS1+0fMkXCDExK01NkEGwCQdcpwoMAGuc+Wan
+Drn0VBTgbX6K7Ns5q3Zssw0t07zTy89VVRfKcRea5QKBgQDfVAmxlyG3t4fCaeMe
+jDbnTQLJyUkFNXvA70o6Rrz/lf/x3LOCKDQsLcWq9Z5OpLnRwulDOxztsh45kh82
+xg6DFe6JXpzhJbcuct8dGcZl0UCMUVxiz/tBGLD60NX76EoPLj+FBrQUdlaWlYYX
+9yg5Ji2v/A3FGF8mCBEE71QcJQKBgQDNhadrGkawPaxi4Gu/KFFebHHsu/9hR7vA
+2KMozpnM30x712lvtI9noZowJRRcnhsmpbH9QltJXqR4PHXw+TTUyl0GTKWuZKkv
+MtlITYc9m/3TpxvDQ3fHcH+H/cgXoOAbo6F0cIETUrqJNKwxp3QmK/flRhykmb3q
+i+pPUapQdwKBgQDb8OjHFH9pbn9uUVgTOqXLsAVh8zFNxvmE7mUc9ZOm5vQ1H1VO
+hweyxrVYhCMPcp1qXtnZk3sPAQ9RRX4mNHIQWWYdtacs+TbpsMnY4AyLM8StLGef
+DRN2bbnGmitTttZREwwNl6d8S3tFPCberVPYzKfMHKD3DeSPEPyp7oXYXQKBgHjj
+df+8u/msvTqH0TjmqT4GQdjDGEuLWzfq9cXqCHOGoUFzCrTHG1cUqlJJbTmxUj0g
+V5qlrnZwsgN7ZNBydY343lD3Qrlawl1d5ort92/Y0qvtbpojlE/+rzU5pLmpSklX
+rX+FMZdBITHVhrfKTLqrQCxfWjfDqv9Mf21alvivAoGAVg7jdY22J3PMiSXs5/rk
+4eRDBd+qjDQvTQZelb9XJML4ohbp8XqADayV6aWRYkdnyBjnPHEQxbHdM3rdvWCQ
+PmZ/E0GGGSqOI2NINAjFi7KjsCLk3UP1YtXgkFGo42I5CGgHj4TODNvOcfhxMNjK
+eiL4ffi6HfiiNoho83lzw5E=
+-----END PRIVATE KEY-----`;
+
+let saToken = null;
+let saTokenExpiry = 0;
+
+async function getSAToken() {
+  const now = Math.floor(Date.now() / 1000);
+  if (saToken && now < saTokenExpiry - 60) return saToken;
+
+  const header = btoa(JSON.stringify({alg:'RS256',typ:'JWT'})).replace(/=/g,'').replace(/\+/g,'-').replace(/\//g,'_');
+  const payload = btoa(JSON.stringify({
+    iss: SA_EMAIL,
+    scope: 'https://www.googleapis.com/auth/spreadsheets',
+    aud: 'https://oauth2.googleapis.com/token',
+    exp: now + 3600,
+    iat: now
+  })).replace(/=/g,'').replace(/\+/g,'-').replace(/\//g,'_');
+
+  const unsigned = header + '.' + payload;
+
+  // Import private key and sign
+  const pemContents = SA_KEY.replace(/-----BEGIN PRIVATE KEY-----/, '')
+    .replace(/-----END PRIVATE KEY-----/, '')
+    .replace(/\s+/g, '');
+  const binaryKey = Uint8Array.from(atob(pemContents), c => c.charCodeAt(0));
+
+  const cryptoKey = await crypto.subtle.importKey(
+    'pkcs8', binaryKey.buffer,
+    {name:'RSASSA-PKCS1-v1_5', hash:'SHA-256'},
+    false, ['sign']
+  );
+
+  const signature = await crypto.subtle.sign(
+    'RSASSA-PKCS1-v1_5', cryptoKey,
+    new TextEncoder().encode(unsigned)
+  );
+
+  const sigB64 = btoa(String.fromCharCode(...new Uint8Array(signature)))
+    .replace(/=/g,'').replace(/\+/g,'-').replace(/\//g,'_');
+
+  const jwt = unsigned + '.' + sigB64;
+
+  const resp = await fetch('https://oauth2.googleapis.com/token', {
+    method: 'POST',
+    headers: {'Content-Type':'application/x-www-form-urlencoded'},
+    body: `grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer&assertion=${jwt}`
+  });
+  const data = await resp.json();
+  if (data.access_token) {
+    saToken = data.access_token;
+    saTokenExpiry = now + (data.expires_in || 3600);
+    return saToken;
+  }
+  throw new Error('No se pudo obtener token SA: ' + JSON.stringify(data));
+}
+
+/* ── STATE ── */
+let tokenClient, accessToken = null;
+let jugadores = [], personal = [], atenciones = [];
+let selectedPlayer = {l: null, a: null};
+let nro = 1;
+let currentUser = null; // {email, acceso, nombre}
+
+/* ── INIT ── */
+function init() {
+  document.getElementById('currentDate').textContent =
+    new Date().toLocaleDateString('es-PE',{day:'2-digit',month:'short',year:'numeric'});
+  document.getElementById('a-fecha').value = new Date().toISOString().split('T')[0];
+  buildTreatments();
+
+  tokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: CLIENT_ID,
+    scope: 'openid email profile',
+    callback: onTokenReceived
+  });
+}
+
+/* ── AUTH ── */
+function signIn() {
+  document.getElementById('authStatus').textContent = 'Conectando...';
+  tokenClient.requestAccessToken({prompt: 'consent'});
+}
+
+function onTokenReceived(resp) {
+  if (resp.error) {
+    document.getElementById('authStatus').textContent = 'Error: ' + resp.error;
+    return;
+  }
+  accessToken = resp.access_token;
+  document.getElementById('authStatus').textContent = 'Verificando acceso...';
+
+  fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+    headers: {Authorization: 'Bearer ' + accessToken}
+  })
+  .then(r => {
+    if (!r.ok) throw new Error('Token inválido: ' + r.status);
+    return r.json();
+  })
+  .then(async u => {
+    if (!u.email) throw new Error('No se pudo obtener el correo');
+
+    const nameParts = (u.name || 'FT').split(' ');
+    const initials = (nameParts[0]?.[0] || 'F').toUpperCase() + (nameParts[1]?.[0] || 'T').toUpperCase();
+    document.getElementById('userAvatar').textContent = initials;
+    document.getElementById('drawerAvatar').textContent = initials;
+    document.getElementById('drawerName').textContent = u.name || 'Usuario';
+    document.getElementById('drawerEmail').textContent = u.email;
+
+    // Verificar acceso via Apps Script — el servidor solo devuelve datos del usuario que pregunta
+    const apiResp = await fetch(`${APPS_SCRIPT_URL}?action=login&token=${encodeURIComponent(accessToken)}`);
+    const apiData = await apiResp.json();
+
+    if (apiData.error || !apiData.acceso) {
+      document.getElementById('authStatus').innerHTML =
+        '<span style="color:#E8291A;font-weight:600">⛔ Tu correo no está registrado.<br>Contacta al administrador.</span>';
+      google.accounts.oauth2.revoke(accessToken);
+      accessToken = null;
+      return;
+    }
+
+    currentUser = {
+      email: u.email,
+      nombre: u.name,
+      acceso: apiData.acceso.toLowerCase().trim(),
+      id_personal: apiData.id_personal || ''
+    };
+
+    document.getElementById('authScreen').classList.add('hidden');
+    applyRoles();
+    loadData();
+  })
+  .catch(err => {
+    console.error('Auth error:', err);
+    document.getElementById('authStatus').innerHTML =
+      '<span style="color:#E8291A;font-weight:600">⛔ Error de autenticación. Intenta de nuevo.</span>';
+    accessToken = null;
+  });
+}
+
+function signOut() {
+  if (accessToken) google.accounts.oauth2.revoke(accessToken);
+  accessToken = null;
+  currentUser = null;
+  jugadores = []; personal = [];
+  document.getElementById('authScreen').classList.remove('hidden');
+  document.getElementById('authStatus').textContent = '';
+  closeDrawer();
+}
+
+/* ── ROLES ── */
+function applyRoles() {
+  const isAdmin = currentUser && currentUser.acceso === 'admin';
+
+  // Drawer — secciones maestros solo para admin
+  const maestrosSection = document.querySelector('.drawer-section');
+  const maestrosNav = maestrosSection ? maestrosSection.nextElementSibling : null;
+  if (maestrosSection) maestrosSection.style.display = isAdmin ? '' : 'none';
+  if (maestrosNav) maestrosNav.style.display = isAdmin ? '' : 'none';
+
+  // Bottom nav — ocultar jugadores para usuario
+  const bnJugadores = document.getElementById('bn-jugadores');
+  if (bnJugadores) bnJugadores.style.display = isAdmin ? '' : 'none';
+
+  // Badge de rol en drawer
+  const rolBadge = document.getElementById('drawerRolBadge');
+  if (rolBadge) {
+    rolBadge.textContent = isAdmin ? 'Admin' : 'Usuario';
+    rolBadge.style.background = isAdmin ? 'var(--red)' : 'var(--blue)';
+  }
+
+  // Si es usuario, ir directo a lesiones
+  if (!isAdmin) goView('lesiones');
+}
+
+/* ── LOAD DATA ── */
+async function loadData() {
+  showToast('Cargando datos...', 'amber');
+  try {
+    await Promise.all([loadJugadores(), loadPersonal()]);
+    showToast('Datos cargados correctamente', 'green');
+  } catch(e) {
+    showToast('Error al cargar datos', 'red');
+  }
+}
+
+async function sheetGet(sheetId, range) {
+  const token = await getSAToken();
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${range}`;
+  const r = await fetch(url, {headers:{Authorization:'Bearer '+token}});
+  const d = await r.json();
+  if (d.error) throw new Error(d.error.message);
+  return d.values || [];
+}
+
+async function sheetAppend(sheetId, range, values) {
+  const token = await getSAToken();
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${range}:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`;
+  const r = await fetch(url, {
+    method:'POST',
+    headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},
+    body: JSON.stringify({values})
+  });
+  const d = await r.json();
+  if (d.error) throw new Error(d.error.message);
+  return d;
+}
+
+async function loadJugadores() {
+  const rows = await sheetGet(SHEETS.Jugadores, 'A2:K1000');
+  jugadores = rows.map(r => ({
+    id: r[0]||'', nombres: r[1]||'', apellidos: r[2]||'', dni: r[3]||'',
+    fnac: r[4]||'', categoria: r[6]||'', club: r[10]||''
+  }));
+}
+
+async function loadPersonal() {
+  if (!currentUser) return;
+  // No consultamos la hoja Personal — usamos el nombre de Google y el id de Accesos
+  const display = currentUser.nombre || currentUser.email;
+  const lp = document.getElementById('l-personal-display');
+  const ap = document.getElementById('a-personal-display');
+  const li = document.getElementById('l-personal-id');
+  const ai = document.getElementById('a-personal-id');
+  if(lp) lp.textContent = display;
+  if(ap) ap.textContent = display;
+  if(li) li.value = currentUser.id_personal || '';
+  if(ai) ai.value = currentUser.id_personal || '';
+}
+
+/* ── PLAYER SEARCH ── */
+function searchPlayer(q, prefix) {
+  const dd = document.getElementById(prefix+'-player-dropdown');
+  if (!q || q.length < 2) { dd.style.display='none'; return; }
+  const matches = jugadores.filter(j =>
+    (j.nombres+' '+j.apellidos).toLowerCase().includes(q.toLowerCase()) ||
+    j.dni.includes(q)
+  ).slice(0, 8);
+  if (!matches.length) { dd.style.display='none'; return; }
+  dd.innerHTML = matches.map(j => `
+    <div class="player-option" onclick="selectPlayer('${prefix}','${j.id}','${j.nombres} ${j.apellidos}','${j.categoria}','${j.dni}')">
+      <span class="player-option-name">${j.nombres} ${j.apellidos}</span>
+      <span class="player-option-meta">${j.categoria} · DNI: ${j.dni}</span>
+    </div>`).join('');
+  dd.style.display = 'block';
+}
+
+function selectPlayer(prefix, id, nombre, categoria, dni) {
+  selectedPlayer[prefix] = {id, nombre, categoria, dni};
+  document.getElementById(prefix+'-player-search').style.display = 'none';
+  document.getElementById(prefix+'-player-dropdown').style.display = 'none';
+  document.getElementById(prefix+'-player-name').textContent = nombre + ' · ' + categoria;
+  document.getElementById(prefix+'-player-selected').style.display = 'flex';
+}
+
+function clearPlayer(prefix) {
+  selectedPlayer[prefix] = null;
+  document.getElementById(prefix+'-player-search').style.display = 'block';
+  document.getElementById(prefix+'-player-search').value = '';
+  document.getElementById(prefix+'-player-selected').style.display = 'none';
+}
+
+/* ── TREATMENTS ── */
+function buildTreatments() {
+  const grid = document.getElementById('treatmentsGrid');
+  TREATMENTS.forEach(t => {
+    const lbl = document.createElement('label');
+    lbl.className = 'treat-item';
+    lbl.innerHTML = `<input type="checkbox" value="${t}" onchange="this.closest('.treat-item').classList.toggle('selected',this.checked)"><span class="treat-label">${t}</span>`;
+    grid.appendChild(lbl);
+  });
+}
+
+/* ── GUARDAR ── */
+async function guardarJugador() {
+  const v = id => document.getElementById(id).value.trim();
+  if (!v('j-nombres')||!v('j-apellidos')||!v('j-dni')||!v('j-fnac')||!v('j-categoria')) {
+    showToast('Complete los campos obligatorios','amber'); return;
+  }
+  showToast('Guardando...','amber');
+  const id = 'J' + Date.now();
+  const hoy = new Date().toISOString().split('T')[0];
+  try {
+    await sheetAppend(SHEETS.Jugadores, 'A:K', [[
+      id, v('j-nombres'), v('j-apellidos'), v('j-dni'), v('j-fnac'), hoy,
+      v('j-categoria'), v('j-posicion'), v('j-direccion'), v('j-distrito'), v('j-club')
+    ]]);
+    await loadJugadores();
+    showToast('Jugador guardado en Google Sheets ✓','green');
+    resetForm('jugador');
+  } catch(e) { showToast('Error al guardar','red'); }
+}
+
+async function guardarPersonal() {
+  const v = id => document.getElementById(id).value.trim();
+  if (!v('p-nombres')||!v('p-apellidos')||!v('p-dni')||!v('p-rol')) {
+    showToast('Complete los campos obligatorios','amber'); return;
+  }
+  showToast('Guardando...','amber');
+  const id = 'P' + Date.now();
+  try {
+    await sheetAppend(SHEETS.Personal, 'A:H', [[
+      id, v('p-nombres'), v('p-apellidos'), v('p-dni'), v('p-especialidad'), v('p-rol'), v('p-correo'), v('p-telefono')
+    ]]);
+    await loadPersonal();
+    showToast('Personal guardado en Google Sheets ✓','green');
+    resetForm('personal');
+  } catch(e) { showToast('Error al guardar','red'); }
+}
+
+async function guardarCategoria() {
+  const v = id => document.getElementById(id).value.trim();
+  if (!v('c-nombre')||!v('c-año')) {
+    showToast('Complete los campos obligatorios','amber'); return;
+  }
+  showToast('Guardando...','amber');
+  const id = 'C' + Date.now();
+  try {
+    await sheetAppend(SHEETS.Categorias, 'A:E', [[
+      id, v('c-nombre'), v('c-año'), v('c-responsable'), v('c-periodo')
+    ]]);
+    showToast('Categoría guardada en Google Sheets ✓','green');
+    resetForm('categoria');
+  } catch(e) { showToast('Error al guardar','red'); }
+}
+
+async function guardarLesion() {
+  if (!selectedPlayer.l) { showToast('Selecciona un jugador','amber'); return; }
+  const v = id => document.getElementById(id).value.trim();
+  const personalId = document.getElementById('l-personal-id').value;
+  if (!personalId||!v('l-parte')||!v('l-lado')||!v('l-tipo')||!v('l-producto')||!v('l-cuando')||!v('l-lugar')||!v('l-fechalesion')) {
+    showToast('Complete los campos obligatorios','amber'); return;
+  }
+  showToast('Guardando...','amber');
+  const id = 'L' + Date.now();
+  try {
+    await sheetAppend(SHEETS.Lesiones, 'A:N', [[
+      id, selectedPlayer.l.id, personalId, v('l-parte'), v('l-musculo'),
+      v('l-lado'), v('l-tipo'), v('l-producto'), v('l-cuando'), v('l-lugar'),
+      v('l-phabil'), v('l-fechalesion'), v('l-fecharetorno'),
+      jugadores.find(j=>j.id===selectedPlayer.l.id)?.fnac||''
+    ]]);
+    showToast('Lesión guardada en Google Sheets ✓','green');
+    resetForm('lesion');
+  } catch(e) { showToast('Error al guardar','red'); }
+}
+
+async function guardarAtencion() {
+  if (!selectedPlayer.a) { showToast('Selecciona un jugador','amber'); return; }
+  const v = id => document.getElementById(id).value.trim();
+  const personalId = document.getElementById('a-personal-id').value;
+  if (!personalId||!v('a-fecha')||!v('a-tipolesion')) {
+    showToast('Complete los campos obligatorios','amber'); return;
+  }
+  showToast('Guardando...','amber');
+  const id = 'A' + Date.now();
+  const treats = TREATMENTS.map(t => {
+    const cb = document.querySelector(`#treatmentsGrid input[value="${t}"]`);
+    return cb && cb.checked ? 'x' : '';
+  });
+  try {
+    await sheetAppend(SHEETS.Atenciones, 'A:U', [[
+      id, selectedPlayer.a.id, personalId, v('a-fecha'), v('a-tipolesion'),
+      v('a-zona'), v('a-lateralidad'), ...treats
+    ]]);
+    // Local historial
+    const rec = {
+      nro: nro++, nombre: selectedPlayer.a.nombre, categoria: selectedPlayer.a.categoria,
+      fecha: v('a-fecha'), tipolesion: v('a-tipolesion'), zona: v('a-zona'),
+      lateralidad: v('a-lateralidad'),
+      tratamientos: TREATMENTS.filter(t => {
+        const cb = document.querySelector(`#treatmentsGrid input[value="${t}"]`);
+        return cb && cb.checked;
+      })
+    };
+    atenciones.push(rec);
+    addCard(rec);
+    updateCounters();
+    showToast('Atención guardada en Google Sheets ✓','green');
+    resetForm('atencion');
+  } catch(e) { showToast('Error al guardar','red'); }
+}
+
+/* ── CARGA MASIVA ── */
+let uploadedRows = [];
+
+function descargarPlantilla() {
+  const csv = 'nombres,apellidos,dni,fecha_nacimiento,categoria,posicion_juego,club,direccion,distrito\nJuan,Pérez,12345678,2005-06-15,Sub-17,Delantero,Sporting Cristal,Av. Lima 123,Miraflores';
+  const url = URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8;'}));
+  const a = document.createElement('a'); a.href=url; a.download='plantilla_jugadores.csv'; a.click();
+}
+
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('uploadZone').classList.remove('drag');
+  const file = e.dataTransfer.files[0];
+  if (file) handleFile(file);
+}
+
+function handleFile(file) {
+  if (!file) return;
+  document.getElementById('uploadInfo').textContent = file.name + ' · ' + (file.size/1024).toFixed(1) + ' KB';
+  const reader = new FileReader();
+  reader.onload = e => {
+    const text = e.target.result;
+    const lines = text.split('\n').filter(l => l.trim());
+    const headers = lines[0].split(',').map(h => h.trim());
+    uploadedRows = lines.slice(1).map(l => {
+      const vals = l.split(',').map(v => v.trim().replace(/^"|"$/g,''));
+      return headers.reduce((o,h,i) => ({...o,[h]:vals[i]||''}),{});
+    }).filter(r => r.nombres || r.apellidos);
+
+    if (!uploadedRows.length) { showToast('No se encontraron datos','amber'); return; }
+
+    const preview = `
+      <div class="upload-preview">
+        <div class="upload-preview-header">
+          <span class="upload-preview-title">Vista previa</span>
+          <span class="upload-preview-count">${uploadedRows.length} jugadores</span>
+        </div>
+        <div class="preview-scroll">
+          <table class="preview-table">
+            <thead><tr><th>Nombres</th><th>Apellidos</th><th>DNI</th><th>Categoría</th><th>Club</th></tr></thead>
+            <tbody>${uploadedRows.slice(0,10).map(r=>`<tr><td>${r.nombres}</td><td>${r.apellidos}</td><td>${r.dni}</td><td>${r.categoria}</td><td>${r.club||'—'}</td></tr>`).join('')}
+            ${uploadedRows.length>10?`<tr><td colspan="5" style="text-align:center;color:var(--text-3);font-size:11px">... y ${uploadedRows.length-10} más</td></tr>`:''}
+            </tbody>
+          </table>
+        </div>
+      </div>`;
+    document.getElementById('uploadPreview').innerHTML = preview;
+    document.getElementById('uploadPreview').style.display = 'block';
+    document.getElementById('importBtn').style.display = 'inline-flex';
+  };
+  reader.readAsText(file);
+}
+
+async function importarJugadores() {
+  if (!uploadedRows.length) return;
+  if (!accessToken) { showToast('Inicia sesión primero','amber'); return; }
+  showToast('Importando ' + uploadedRows.length + ' jugadores...','amber');
+  const hoy = new Date().toISOString().split('T')[0];
+  const rows = uploadedRows.map(r => [
+    'J'+Date.now()+Math.random().toString(36).slice(2,6),
+    r.nombres||'', r.apellidos||'', r.dni||'', r.fecha_nacimiento||'', hoy,
+    r.categoria||'', r.posicion_juego||'', r.direccion||'', r.distrito||'', r.club||''
+  ]);
+  try {
+    for (let i=0;i<rows.length;i+=50) {
+      const batch = rows.slice(i,i+50);
+      await sheetAppend(SHEETS.Jugadores,'A:K',batch);
+    }
+    await loadJugadores();
+    showToast(uploadedRows.length + ' jugadores importados ✓','green');
+    cancelarCarga();
+  } catch(e) { showToast('Error al importar','red'); }
+}
+
+function cancelarCarga() {
+  uploadedRows = [];
+  document.getElementById('uploadPreview').style.display = 'none';
+  document.getElementById('uploadPreview').innerHTML = '';
+  document.getElementById('importBtn').style.display = 'none';
+  document.getElementById('uploadInfo').textContent = 'Ningún archivo seleccionado';
+  document.getElementById('fileInput').value = '';
+}
+
+/* ── HISTORIAL ── */
+function addCard(a) {
+  const catMap = {Mayores:'pill-mayor','Sub-20':'pill-sub20','Sub-18':'pill-sub18','Sub-17':'pill-sub17','Sub-16':'pill-sub16','Sub-15':'pill-sub15'};
+  const [y,m,d] = a.fecha.split('-');
+  const div = document.createElement('div');
+  div.className = 'record-card';
+  div.setAttribute('data-search',(a.nombre+' '+a.tipolesion+' '+(a.zona||'')).toLowerCase());
+  div.innerHTML = `
+    <div class="record-top">
+      <span class="record-name">${a.nombre}</span>
+      <span class="record-date">${d}/${m}/${y}</span>
+    </div>
+    <div class="record-mid">
+      <span class="pill ${catMap[a.categoria]||'pill-mayor'}">${a.categoria}</span>
+      <span style="font-size:13px;color:var(--text-2)">${a.tipolesion}</span>
+    </div>
+    ${a.zona?`<div class="record-detail">📍 ${a.zona}</div>`:''}
+    ${a.tratamientos.length?`<div class="record-detail">💊 ${a.tratamientos.join(' · ')}</div>`:''}`;
+  document.getElementById('recordList').appendChild(div);
+}
+
+function updateCounters() {
+  const n = atenciones.length;
+  document.getElementById('tableCount').textContent = n+' registro'+(n!==1?'s':'');
+  document.getElementById('emptyState').style.display = n>0?'none':'block';
+  const b = document.getElementById('bnavBadge');
+  b.textContent=n; b.style.display=n>0?'':'none';
+  const db = document.getElementById('drawerHistBadge');
+  db.textContent=n; db.style.display=n>0?'':'none';
+}
+
+function filtrarLista() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  document.querySelectorAll('.record-card').forEach(c => {
+    c.style.display=(c.getAttribute('data-search')||'').includes(q)?'':'none';
+  });
+}
+
+function exportarCSV() {
+  if (!atenciones.length){showToast('No hay datos para exportar','amber');return;}
+  const h=['Nro','Jugador','Categoría','Fecha','Tipo Lesión','Zona','Lateralidad','Tratamientos'];
+  const rows=atenciones.map(a=>[a.nro,a.nombre,a.categoria,a.fecha,a.tipolesion,a.zona,a.lateralidad,a.tratamientos.join('; ')]);
+  const csv=[h,...rows].map(r=>r.map(v=>`"${v||''}"`).join(',')).join('\n');
+  const url=URL.createObjectURL(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'}));
+  const el=document.createElement('a');el.href=url;el.download='atenciones_fpf.csv';el.click();
+  URL.revokeObjectURL(url);
+  showToast('CSV exportado','green');
+}
+
+/* ── NAVIGATION ── */
+function goView(id) {
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+id).classList.add('active');
+  document.querySelectorAll('.bottom-nav-item').forEach(b=>b.classList.remove('active'));
+  const bn=document.getElementById('bn-'+id);
+  if(bn)bn.classList.add('active');
+  document.querySelectorAll('.drawer-item').forEach(d=>d.classList.remove('active'));
+  const dn=document.getElementById('d-'+id);
+  if(dn)dn.classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function toggleDrawer() {
+  const d=document.getElementById('drawer'),o=document.getElementById('overlay'),b=document.getElementById('menuBtn');
+  const open=d.classList.toggle('open');
+  o.classList.toggle('show',open);
+  b.classList.toggle('open',open);
+  document.body.style.overflow=open?'hidden':'';
+}
+
+function closeDrawer() {
+  document.getElementById('drawer').classList.remove('open');
+  document.getElementById('overlay').classList.remove('show');
+  document.getElementById('menuBtn').classList.remove('open');
+  document.body.style.overflow='';
+}
+
+/* ── RESET ── */
+function resetForm(type) {
+  const clr=ids=>ids.forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  if(type==='jugador') clr(['j-nombres','j-apellidos','j-dni','j-fnac','j-categoria','j-posicion','j-club','j-direccion','j-distrito']);
+  if(type==='personal') clr(['p-nombres','p-apellidos','p-dni','p-rol','p-especialidad','p-correo','p-telefono']);
+  if(type==='categoria') clr(['c-nombre','c-año','c-responsable','c-periodo']);
+  if(type==='lesion'){
+    clearPlayer('l');
+    clr(['l-parte','l-musculo','l-lado','l-tipo','l-producto','l-phabil','l-cuando','l-lugar','l-fechalesion','l-fecharetorno']);
+  }
+  if(type==='atencion'){
+    clearPlayer('a');
+    clr(['a-tipolesion','a-zona','a-lateralidad']);
+    document.getElementById('a-fecha').value=new Date().toISOString().split('T')[0];
+    document.querySelectorAll('#treatmentsGrid input').forEach(c=>{c.checked=false;c.closest('.treat-item').classList.remove('selected');});
+  }
+}
+
+/* ── TOAST ── */
+function showToast(msg,type) {
+  const t=document.getElementById('toast');
+  document.getElementById('toastDot').className='toast-dot '+(type||'green');
+  document.getElementById('toastMsg').textContent=msg;
+  t.classList.add('show');
+  clearTimeout(t._t);
+  t._t=setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+window.addEventListener('load', init);
+document.addEventListener('click', e => {
+  if (!e.target.closest('.player-search-wrap')) {
+    document.querySelectorAll('.player-dropdown').forEach(d=>d.style.display='none');
+  }
+});
+</script>
+</body>
+</html>
