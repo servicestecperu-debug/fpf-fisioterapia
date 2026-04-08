@@ -205,6 +205,7 @@ html,body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:
 .empty-icon{font-size:36px;margin-bottom:10px;opacity:.35}
 .empty-text{font-size:14px;font-weight:600;color:var(--text-2);margin-bottom:4px}
 .empty-sub{font-size:12px;color:var(--text-3)}
+.field select:disabled{background:var(--blue-bg);border-color:var(--blue);color:var(--blue);opacity:1;cursor:default;background-image:none}
 
 /* STATUS BADGE */
 .status-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:20px;font-size:12px;font-weight:600}
@@ -1112,9 +1113,6 @@ async function loadPersonal() {
     id:r[0]||'', nombres:r[1]||'', apellidos:r[2]||'',
     rol:r[5]||'', correo:r[6]||'', acceso:r[8]||'user'
   }));
-  const opts = personal.map(p => `<option value="${p.id}">${p.nombres} ${p.apellidos} · ${p.rol}</option>`).join('');
-  document.getElementById('l-personal').innerHTML = '<option value="">— Seleccionar —</option>' + opts;
-  document.getElementById('a-personal').innerHTML = '<option value="">— Seleccionar —</option>' + opts;
   autoSelectPersonal();
 }
 
@@ -1122,8 +1120,14 @@ function autoSelectPersonal() {
   if (!currentUser || !currentUser.email || !personal.length) return;
   const me = personal.find(p => (p.correo||'').toLowerCase().trim() === currentUser.email.toLowerCase().trim());
   if (me) {
-    document.getElementById('l-personal').value = me.id;
-    document.getElementById('a-personal').value = me.id;
+    // Mostrar solo el usuario logueado en ambos selects
+    const opt = `<option value="${me.id}" selected>${me.nombres} ${me.apellidos} · ${me.rol}</option>`;
+    const lp = document.getElementById('l-personal');
+    const ap = document.getElementById('a-personal');
+    lp.innerHTML = opt;
+    lp.disabled = true;
+    ap.innerHTML = opt;
+    ap.disabled = true;
   }
 }
 
