@@ -992,10 +992,10 @@ function onTokenReceived(resp) {
   .then(async u => {
     if (!u.email) throw new Error('No se pudo obtener el correo');
 
-    const initials = ((u.given_name||'')[0]||(u.name||'U')[0]).toUpperCase() +
-                     ((u.family_name||'')[0]||(u.name||' ').split(' ')[1]?.[0]||'').toUpperCase();
-    document.getElementById('userAvatar').textContent = initials||'FT';
-    document.getElementById('drawerAvatar').textContent = initials||'FT';
+    const nameParts = (u.name || 'FT').split(' ');
+    const initials = (nameParts[0]?.[0] || 'F').toUpperCase() + (nameParts[1]?.[0] || 'T').toUpperCase();
+    document.getElementById('userAvatar').textContent = initials;
+    document.getElementById('drawerAvatar').textContent = initials;
     document.getElementById('drawerName').textContent = u.name || 'Usuario';
     document.getElementById('drawerEmail').textContent = u.email;
 
@@ -1115,14 +1115,15 @@ async function loadPersonal() {
   const opts = personal.map(p => `<option value="${p.id}">${p.nombres} ${p.apellidos} · ${p.rol}</option>`).join('');
   document.getElementById('l-personal').innerHTML = '<option value="">— Seleccionar —</option>' + opts;
   document.getElementById('a-personal').innerHTML = '<option value="">— Seleccionar —</option>' + opts;
+  autoSelectPersonal();
+}
 
-  // Autoseleccionar el personal según el usuario logueado
-  if (currentUser && currentUser.email) {
-    const me = personal.find(p => p.correo.toLowerCase().trim() === currentUser.email.toLowerCase().trim());
-    if (me) {
-      document.getElementById('l-personal').value = me.id;
-      document.getElementById('a-personal').value = me.id;
-    }
+function autoSelectPersonal() {
+  if (!currentUser || !currentUser.email || !personal.length) return;
+  const me = personal.find(p => (p.correo||'').toLowerCase().trim() === currentUser.email.toLowerCase().trim());
+  if (me) {
+    document.getElementById('l-personal').value = me.id;
+    document.getElementById('a-personal').value = me.id;
   }
 }
 
@@ -1446,22 +1447,14 @@ function resetForm(type) {
   if(type==='lesion'){
     clearPlayer('l');
     clr(['l-parte','l-musculo','l-lado','l-tipo','l-producto','l-phabil','l-cuando','l-lugar','l-fechalesion','l-fecharetorno']);
-    // Mantener personal logueado
-    if(currentUser) {
-      const me = personal.find(p => p.correo.toLowerCase().trim() === currentUser.email.toLowerCase().trim());
-      if(me) document.getElementById('l-personal').value = me.id;
-    }
+    autoSelectPersonal();
   }
   if(type==='atencion'){
     clearPlayer('a');
     clr(['a-tipolesion','a-zona','a-lateralidad']);
     document.getElementById('a-fecha').value=new Date().toISOString().split('T')[0];
     document.querySelectorAll('#treatmentsGrid input').forEach(c=>{c.checked=false;c.closest('.treat-item').classList.remove('selected');});
-    // Mantener personal logueado
-    if(currentUser) {
-      const me = personal.find(p => p.correo.toLowerCase().trim() === currentUser.email.toLowerCase().trim());
-      if(me) document.getElementById('a-personal').value = me.id;
-    }
+    autoSelectPersonal();
   }
 }
 
